@@ -119,7 +119,7 @@ AppSettingsPage({
 
   async get(res, endPoint, baseUrl = "https://api.quran.com/api/v4/") {
     try {
-      console.log(baseUrl + endPoint);
+      console.log("url" + baseUrl + endPoint);
       const response = await fetch(baseUrl + endPoint);
       const text = await response.text();
       const result = JSON.parse(text);
@@ -129,7 +129,7 @@ AppSettingsPage({
         data: result,
       });
     } catch (error) {
-      console.log(error);
+      console.log("error", error);
       res({
         status: "error",
         error,

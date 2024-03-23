@@ -7,6 +7,12 @@ msgstr "الجزء"
 msgid "Choose By"
 msgstr "إختر بواسطة"
 
+msgid "Previous"
+msgstr "سابق"
+
+msgid "Next"
+msgstr "لاحق"
+
 msgid "0"
 msgstr "٠"
 

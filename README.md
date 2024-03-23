@@ -78,7 +78,7 @@ See also the list of [contributors](https://github.com/mahmoudbahaa/amazfit-qura
 
 - Hat tip to anyone whose code was used
 - The folks at Quran.com
-- Logo moified from <a href="https://www.freepik.com/free-vector/holy-book-koran-stand-ramadan-kareem-card-background_39514054.htm#page=2&query=quran%20logo&position=0&from_view=keyword&track=ais&uuid=a2650f62-e506-47bf-bed5-5ac0ee4e309e">Image by Harryarts</a> on Freepik
+- Logo modified from <a href="https://www.freepik.com/free-vector/holy-book-koran-stand-ramadan-kareem-card-background_39514054.htm#page=2&query=quran%20logo&position=0&from_view=keyword&track=ais&uuid=a2650f62-e506-47bf-bed5-5ac0ee4e309e">Image by Harryarts</a> on Freepik
 
 ## :memo: License <a name = "license"></a>
   

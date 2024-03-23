@@ -122,7 +122,7 @@ export const quranComApiModule = {
           return;
         }
 
-        console.log(JSON.stringify(result));
+        console.log("result=" + JSON.stringify(result));
         const url = result.data.audio_file.audio_url;
         const task = module.downloadFile(url, fileName);
         const orgFileName = url.substr(url.lastIndexOf("/") + 1);

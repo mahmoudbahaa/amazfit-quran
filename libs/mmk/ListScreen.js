@@ -186,6 +186,17 @@ export class ListScreen {
 		return this._classBasedEntry(CardEntry, userConfig);
 	}
 
+	moreButton(userConfig) {
+		const more = hmUI.createWidget(hmUI.widget.BUTTON, {
+			...userConfig,
+			y: this.positionY,
+			click_func: () => {
+				userConfig.callback();
+				hmUI.deleteWidget(more);
+			}
+		})
+	}
+
 	_classBasedEntry(ClassEntry, userConfig) {
 		const entry = new ClassEntry(userConfig, this, this.positionY);
 		entry._init();

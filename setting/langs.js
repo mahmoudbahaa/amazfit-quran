@@ -20,6 +20,6 @@ export function SetLanguage(lang) {
 }
 
 export function __(text) {
-    console.log(i18n);
+    console.log("i18n", i18n);
     return text;
 }

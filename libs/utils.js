@@ -5,7 +5,7 @@ import * as appService from "@zos/app-service";
 import { getSurahInfo, setSurahInfo } from "./localStorage";
 
 export const { height: DEVICE_HEIGHT, width: DEVICE_WIDTH } = getDeviceInfo();
-export const CHAPTERS_PER_PAGE = 5;
+export const CHAPTERS_PER_PAGE = 10;
 export const NUM_CHAPTERS = 30;
 
 export function selectPage() {

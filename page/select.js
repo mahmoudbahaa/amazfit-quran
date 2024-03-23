@@ -5,7 +5,7 @@ import * as Styles from "./style.r.layout.js";
 import { CHAPTERS_PER_PAGE, DEVICE_HEIGHT, DEVICE_WIDTH, NUM_CHAPTERS, route } from "../libs/utils.js";
 import { BasePage } from "@zeppos/zml/base-page";
 import { getChapters, getCurSurahLang, setChapters, setCurSurahLang, setSurahInfo, useSimpleSurahName } from "../libs/localStorage.js";
-import { replace } from "@zos/router";
+import { back, push, replace } from "@zos/router";
 import { createLoadingWidget, deleteLoadingWidget } from "../components/loading-anim/index.js";
 import { apiCall } from "../components/api-caller/index.js";
 import { createList } from "../components/list/index.js";
@@ -18,23 +18,20 @@ const logger = log.getLogger("select.page");
 // let chapters = [];
 let langCode = "ar";
 let rtl = true;
-const numChapters = 30;
 const thisPage = "page/select";
 
 Page({
   state: {
     start,
-    end,
+    end
   },
   onCreate() {
     logger.log("select page on create invoke");
   },
   onInit(params) {
     logger.log("select page on init invoke");
-    console.log(params);
-    const paramParts = params.split(",");
-    this.state.start = parseInt(paramParts[0]);
-    this.state.end = parseInt(paramParts[1]);
+    this.state.start = parseInt(params.split(",")[0]);
+    this.state.end = parseInt(params.split(",")[1]);
   },
   onShow() {
     logger.log("select page on show invoke");
@@ -73,39 +70,7 @@ Page({
   },
 
   createWidgets() {
-    if (this.state.start !== 0) {
-      console.log("Creating Previous Button");
-      hmUI.createWidget(hmUI.widget.BUTTON, {
-        ...Styles.MAIN_TITLE_STYLE,
-        x: DEVICE_WIDTH / 4,
-        w: DEVICE_WIDTH / 4,
-        text: _("<-"),
-        click_func: () => {
-          replace({
-            url: thisPage,
-            params: (this.state.start - CHAPTERS_PER_PAGE) + "," + (this.state.end - CHAPTERS_PER_PAGE)
-          })
-        }
-      });
-    }
-
-    if (this.state.end < NUM_CHAPTERS) {
-      console.log("Creating Next Button");
-      hmUI.createWidget(hmUI.widget.BUTTON, {
-        ...Styles.MAIN_TITLE_STYLE,
-        x: DEVICE_WIDTH / 2,
-        w: DEVICE_WIDTH / 4,
-        text: _("->"),
-        click_func: () => {
-          replace({
-            url: thisPage,
-            params: (this.state.start + CHAPTERS_PER_PAGE) + "," + (this.state.end + CHAPTERS_PER_PAGE)
-          })
-        }
-      });
-    }
-
-    new ChaptersScreen(this.state.start, this.state.end).start();
+    new ChaptersScreen().start(this.state.start, this.state.end);
   },
 
   build() {
@@ -123,51 +88,78 @@ Page({
 
 let lastSurahNumber = -1;
 class ChaptersScreen extends ListScreen {
-  constructor(start, end) {
-    super();
-    this._start = start;
-    this._end = end;
-  }
-
-  get start() {
-    return this._start;
-  }
-
-  get end() {
-    return this._end;
-  }
-
-  start() {
-    render(this);
+  start(start, end) {
+    render(this, start, end);
   }
 }
 
-function render(screen) {
+function render(screen, start, end) {
+  if (start > 0) {
+    addPreviosButton(screen, start);
+  }
+
   const ar = langCode === "ar";
   const useSimpleNames = useSimpleSurahName() === "true";
   const nameKey = ar ? "name_arabic" : useSimpleNames ? "name_simple" : "name_complex";
 
-  juzs.slice(screen.start, screen.end).forEach((juz, index) => {
-    index += renderStart;
-    getJuzRow(screen, juz.juz_number);
+  juzs.slice(start, end).forEach((juz) => {
+    addJuzRow(screen, juz.juz_number);
 
     const verse_mapping = juz.verse_mapping;
     for (const surah_number in verse_mapping) {
-      if (lastSurahNumber === surah_number) continue;
+      // if (lastSurahNumber === surah_number) continue;
 
       const index = surah_number - 1;
       const name = chapters[index][nameKey];
       const translation = ar ? chapters[index].name_arabic : chapters[index].translated_name.name;
-      getChapterRow(screen, surah_number, name, translation);
+      addChapterRow(screen, surah_number, name, translation);
       lastSurahNumber = surah_number;
     }
   });
 
-  screen.offset();
+  if (end < NUM_CHAPTERS) {
+    addNextButton(screen, end);
+  }
 }
 
-function getJuzRow(listScreen, juz_number) {
-  const textRow = listScreen.row({
+function addPreviosButton(listScreen, start) {
+  listScreen.row({
+    text: _("Previous"),
+    rtl,
+    card: {
+      color: 0x123456,
+      radius: 0,
+    },
+    alignH: hmUI.align.CENTER_H,
+    callback: () => {
+      replace({
+        url: thisPage,
+        params: (start - CHAPTERS_PER_PAGE) + "," + start,
+      })
+    }
+  });
+}
+
+function addNextButton(listScreen, end) {
+  listScreen.row({
+    text: _("Next"),
+    rtl,
+    card: {
+      color: 0x123456,
+      radius: 0,
+    },
+    alignH: hmUI.align.CENTER_H,
+    callback: () => {
+      replace({
+        url: thisPage,
+        params: end + "," + (end + CHAPTERS_PER_PAGE),
+      })
+    }
+  });
+}
+
+function addJuzRow(listScreen, juz_number) {
+  listScreen.row({
     text: _("Juz'") + " " + _(juz_number + ""),
     card: {
       color: 0x333333,
@@ -175,13 +167,14 @@ function getJuzRow(listScreen, juz_number) {
     },
     alignH: rtl ? hmUI.align.RIGHT : hmUI.align.LEFT,
     callback: () => {
-      textRow.setText("Sus Sus Sus Sus Sus Sus Sus Sus Sus Sus Sus Sus Sus ")
+      //TODO:
+      logger.log("Juz Called " + juz_number);
     }
   })
 }
 
-function getChapterRow(listScreen, surah_number, name, translation) {
-  const textRow = listScreen.row({
+function addChapterRow(listScreen, surah_number, name, translation) {
+  listScreen.row({
     text: _("Surah") + " " + name,
     rtl,
     card: {
@@ -191,7 +184,6 @@ function getChapterRow(listScreen, surah_number, name, translation) {
 
     description: translation,
     iconText: _(surah_number),
-    iconWidth: 1,
     iconAlignH: hmUI.align.RIGHT,
     alignH: hmUI.align.CENTER_H,
     callback: () => {

@@ -106,7 +106,7 @@ export class CanvasTGA {
 		const id = this.palette.indexOf(this.fillStyle);
 		if(id < 0) {
 			console.log("Missing color", this.fillStyle);
-			console.log(this.palette);
+			console.log("pallete", this.palette);
 			return;
 		}
 		const [iw, ih] = this._size;

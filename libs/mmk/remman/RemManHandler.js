@@ -106,7 +106,7 @@ export class RemManHandler {
     if(path[0] === "/") path = path.substring(1);
 
     const entry = this.basePath.get(path);
-    console.log(entry.absolutePath)
+    console.log("absolutePath", entry.absolutePath)
     const [st, e] = entry.stat();
     if(e) return {error: "notfound"};
 
@@ -128,7 +128,7 @@ export class RemManHandler {
       output.files = [];
       const [list, _] = entry.list();
       for(const fn of list) {
-        console.log(fn);
+        console.log("fn", fn);
         output.files.push(this._statPath(path + "/" + fn, false));
       }
     }

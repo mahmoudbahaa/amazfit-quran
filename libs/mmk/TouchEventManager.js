@@ -2,7 +2,6 @@ import * as hmUI from '@zos/ui';
 export class TouchEventManager {
 	constructor(widget) {
 		this.ontouch = null;
-		this.onlongtouch = null;
 		this.onlongtouchrepeatly = null;
 		this.ontouchdown = null;
 		this.ontouchup = null;
