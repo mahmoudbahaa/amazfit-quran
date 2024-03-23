@@ -1,0 +1,38 @@
+msgid "Surah"
+msgstr "سورة"
+
+msgid "Juz'"
+msgstr "الجزء"
+
+msgid "Choose By"
+msgstr "إختر بواسطة"
+
+msgid "0"
+msgstr "٠"
+
+msgid "1"
+msgstr "١"
+
+msgid "2"
+msgstr "٢"
+
+msgid "3"
+msgstr "٣"
+
+msgid "4"
+msgstr "٤"
+
+msgid "5"
+msgstr "٥"
+
+msgid "6"
+msgstr "٦"
+
+msgid "7"
+msgstr "٧"
+
+msgid "8"
+msgstr "٨"
+
+msgid "9"
+msgstr "٩"
