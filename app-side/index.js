@@ -1,18 +1,12 @@
-import { BaseSideService } from "@zeppos/zml/base-side";
+import {BaseSideService} from "@zeppos/zml/base-side";
 
-import { fileDownloadModule } from "./file-download-module";
-import { fileTransferModule } from "./file-transfer-module";
-import { quranComApiModule } from "./quran-com-api-module";
-import { quranicAduioComApiModule } from "./quranicaudio-com-api-module";
+import {settingsModule} from "./settings-module";
 
 const logger = Logger.getLogger("message-app-side");
 
 AppSideService(
   BaseSideService({
-    ...fileDownloadModule,
-    ...fileTransferModule,
-    ...quranComApiModule,
-    ...quranicAduioComApiModule,
+    ...settingsModule,
     onInit() {
       logger.log("app side service invoke onInit");
     },
@@ -24,27 +18,21 @@ AppSideService(
     },
 
     async onRequest(req, res) {
-      console.log("can you hear me ?");
-      const [, action] = req.method.split(".");
-      switch (action) {
-        case "quranApi": {
-          const { api } = req.params;
-
+      switch (req.method) {
+        case "getSettings":
           res(null, {
             status: "success",
             data: "",
           });
-
-          logger.log("api: " + api);
-          logger.log("req.params: " + JSON.stringify(req.params));
-          switch (api) {
-            case "getSettings": this.getSettings(); break;
-            case "getChapters": this.getChapters(); break;
-            case "getRecitation": this.getRecitation(req.params.fileName, req.params.relativePath); break;
-          }
-          
+          this.getSettings(req);
           break;
-        }
+        case "getVerseRecitation":
+          res(null, {
+            status: "success",
+            data: "",
+          });
+          this.getVerseRecitation(req);
+          break;
         default: {
           res(null, {
             status: "error",
@@ -53,5 +41,32 @@ AppSideService(
         }
       }
     },
+
+    getVerseRecitation(req) {
+      logger.log("Getting Recitation");
+      const url = "https://verses.quran.com/" + req.params.relativePath;
+      const task = this.download(url, {
+        headers: {},
+        timeout: 600000,
+      });
+
+      const fileName = url.substr(url.lastIndexOf("/") + 1);
+      const that = this;
+      task.onComplete = () => that.transferFile(req, fileName);
+    },
+
+    transferFile(req, fileName) {
+      const to = "data://download/" + fileName;
+      const task = this.sendFile(to, {type: "mp3", name: to});
+      const module = this;
+      task.on("change", (e) => {
+        if (e.data.readyState !== 'transferred') return;
+
+        module.call({
+          success: true,
+          req
+        });
+      });
+    }
   })
-);
+)

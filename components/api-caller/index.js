@@ -1,14 +1,14 @@
-export function apiCall(api, that, extraParams, onError) {
-    that.request({
-        method: "quranApi.quranApi",
-        params: {
-          api,
-          ...extraParams
-        }
-    })
-    .then((result) => {})
-    .catch((error) => {
-        logger.error("error=>%j", error);
-        if (onError) onError(error);
-    });
+export function apiCall(api, page, pageUrl, extraParams = {}, onError = undefined) {
+  // send a message to Side Service
+  page.request({
+    method: api,
+    params: {
+      page: pageUrl,
+      ...extraParams
+    }
+  }).then((result) => {
+  }).catch((error) => {
+    console.error("error=>%j", error);
+    if (onError) onError(error);
+  });
 }

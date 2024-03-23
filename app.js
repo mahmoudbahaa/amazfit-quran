@@ -1,5 +1,5 @@
-import { BaseApp } from "@zeppos/zml/base-app";
-import { EventBus } from "@zos/utils";
+import {BaseApp} from '@zeppos/zml/base-app'
+import {EventBus} from "@zos/utils";
 
 const bus = new EventBus();
 
@@ -7,18 +7,19 @@ App(
   BaseApp({
     globalData: {
       bus,
+      startParams: undefined,
       isDownloadTransfer: false,
       surahDuration: NaN,
       playerDuration: NaN,
-      startParams: undefined,
+      verses: undefined,
+      settings: undefined,
     },
-    onCreate(params) {
+    onCreate(options) {
+      console.log('app on create invoke')
       this.globalData.startParams = params;
-      console.log("app on create invoke");
     },
-
-    onDestroy() {
-      console.log("app on destroy invoke");
-    },
+    onDestroy(options) {
+      console.log('app on destroy invoke')
+    }
   })
 );

@@ -1,92 +1,118 @@
-import hmUI, { deleteWidget, redraw } from "@zos/ui";
-import { px } from '@zos/utils'
-import { log } from "@zos/utils";
-import * as Styles from "./style.r.layout.js";
-import { APP_ID, CHAPTERS_PER_PAGE, DEVICE_HEIGHT, DEVICE_WIDTH, NUM_CHAPTERS, nextChapterEnd, nextChapterStart, route } from "../libs/utils.js";
-import { BasePage } from "@zeppos/zml/base-page";
-import { getChapters, getCurSurahLang, setChapters, setCurSurahLang, setSurahInfo, useSimpleSurahName } from "../libs/localStorage.js";
-import { back, exit, push, replace, setLaunchAppTimeout } from "@zos/router";
-import { createLoadingWidget, deleteLoadingWidget } from "../components/loading-anim/index.js";
-import { apiCall } from "../components/api-caller/index.js";
-import { createList } from "../components/list/index.js";
-import { _, getLanguageCode } from "../libs/lang.js";
-import { chapters } from "./test-data/chapters.js"
-import { juzs } from "./test-data/juzs.js"
-import { ListScreen } from "../libs/mmk/ListScreen.js";
-import { Time } from "@zos/sensor";
+import hmUI from "@zos/ui";
+import {log} from "@zos/utils";
+import {NUM_CHAPTERS, nextChapterEnd, nextChapterStart, NUM_VERSES, checkExists} from "../libs/utils.js";
+import {
+  getChapters,
+  getCurSurahLang,
+  getSurahInfo,
+  setChapters,
+  setCurSurahLang,
+  setSurahInfo,
+  useSimpleSurahName
+} from "../libs/localStorage.js";
+import {createLoadingWidget, deleteLoadingWidget} from "../components/loading-anim/index.js";
+import {apiCall} from "../components/api-caller/index.js";
+import {_, getLanguageCode} from "../libs/lang.js";
+//import {chapters} from "./test-data/chapters.js"
+import {juzs} from "./test-data/juzs.js"
+import {ListScreen} from "../libs/mmk/ListScreen.js";
+import {BasePage} from "@zeppos/zml/base-page";
+import {quranComApiModule} from "../components/quran-com-api-module.js"
+import {setWakeUpRelaunch} from "@zos/display";
+import {push} from "@zos/router";
 
 const logger = log.getLogger("select.page");
 // let chapters = [];
 let langCode = "ar";
 let rtl = true;
+let verseIdx = -1;
+let chapters;
+let page;
 const thisPage = "page/select";
-const indexPage = "page/index";
+const playerPage = "page/player"
 
-Page({
-  state: {
-    start,
-    end
-  },
+Page(
+  BasePage({
+    onInit(params) {
+      page = this;
+      setWakeUpRelaunch({
+        relaunch: true,
+      });
+    },
 
-  onInit(params) {
-    logger.log("select page on init invoke");
-    if (params) {
-      this.state.start = parseInt(params.split(",")[0]);
-      this.state.end = parseInt(params.split(",")[1]);
-    } else {
-      const startParams = getApp()._options.globalData.startParams;
-      this.state.start = parseInt(startParams.split(",")[1]);
-      this.state.end = parseInt(startParams.split(",")[1]);
-    }
-  },
+    onDestroy() {
+      logger.log("select page on destroy invoke");
+    },
 
-  onDestroy() {
-    logger.log("select page on destroy invoke");
-  },
-
-  onCall({ result }) {
-    console.log("result: ", result.status);
-
-    if (result.status !== "success") return;
-
-    switch (result.api) {
-      case "getSettings": {
-        setSurahInfo("recitation", result.settings.recitation);
-        const lastCurLang = getCurSurahLang();
-        const surahLang = result.settings.surahLang;
-        this.state.langCode = surahLang ? surahLang.isoCode : getLanguageCode().split("-")[0];
-        console.log("returned lang: " + isoCode)
-        console.log("lastCurLang: " + lastCurLang);
-        if (lastCurLang !== isoCode) {
-          apiCall("getChapters", this);
-        } else {
-          // chapters = getChapters();
-          this.createWidgets();
-        }
-        break;
-      }
-      case "getChapters": {
-        console.log("Got Chapters: ")
-        // chapters = result.chapters;
-        setCurSurahLang(this.state.langCode);
-        setChapters(result.chapters);
+    onSettings() {
+      const settings = getApp()._options.globalData.settings;
+      console.log("recitation=" + settings.recitation);
+      setSurahInfo("recitation", settings.recitation);
+      const lastCurLang = getCurSurahLang();
+      const surahLang = settings.surahLang;
+      langCode = surahLang ? surahLang.isoCode : getLanguageCode().split("-")[0];
+      console.log("returned lang: " + langCode)
+      console.log("lastCurLang: " + lastCurLang);
+      const caller = this;
+      if (lastCurLang !== langCode) {
+        quranComApiModule.getChapters(this, langCode, (theChapters) => {
+          console.log("Got Chapters: ")
+          chapters = theChapters;
+          setCurSurahLang(langCode);
+          setChapters(chapters);
+          caller.createWidgets();
+        });
+      } else {
+        chapters = getChapters();
         this.createWidgets();
-        break;
       }
-    }
-  },
+    },
 
-  createWidgets() {
-    new ChaptersScreen().start(this.state.start, this.state.end);
-  },
+    onCall(result) {
+      const req = result.req;
+      console.log("result received for req:", JSON.stringify(req));
+      console.log("success:", result.success);
 
-  build() {
-    this.createWidgets();
-  },
-});
+      if (!result.success || req.params.page !== thisPage) return;
+
+      console.log("method=" + req.method);
+      switch (req.method) {
+        case "getSettings": {
+          getApp()._options.globalData.settings = result.settings;
+          this.onSettings();
+          break;
+        }
+
+        case "getVerseRecitation": {
+          console.log("Got file:" + req.params.relativePath);
+          downloadVerse();
+          break;
+        }
+      }
+    },
+
+    createWidgets() {
+      console.log("Creating Widgets");
+      new ChaptersScreen().start(0, nextChapterEnd(0));
+      deleteLoadingWidget();
+    },
+
+    build() {
+      createLoadingWidget(hmUI);
+
+      console.log("Sending getSettings to Side Service");
+      if (getApp()._options.globalData.settings) {
+        this.onSettings();
+      } else {
+        apiCall("getSettings", this, thisPage);
+      }
+    },
+  })
+);
 
 
 let lastSurahNumber = -1;
+
 class ChaptersScreen extends ListScreen {
   start(start, end) {
     render(this, start, end);
@@ -146,8 +172,9 @@ function addJuzRow(listScreen, juz_number) {
       color: 0x333333,
       radius: 0,
       callback: () => {
-        //TODO:
-        logger.log("Juz Called " + juz_number);
+//                verses = getJuzVerses(juz_number);
+//                downloadVerses();
+//                route(verses);
       }
     },
     alignH: rtl ? hmUI.align.RIGHT : hmUI.align.LEFT,
@@ -163,8 +190,10 @@ function addChapterRow(listScreen, surah_number, name, translation) {
       color: 0x222222,
       radius: 0,
       callback: () => {
-        // shown = false;
-        route(surah_number - 1);
+        getApp()._options.globalData.verses = getChapterVerses(surah_number);
+        downloadVerses();
+        console.log("verses=" + getApp()._options.globalData.verses);
+
       }
     },
 
@@ -173,4 +202,70 @@ function addChapterRow(listScreen, surah_number, name, translation) {
     iconAlignH: hmUI.align.RIGHT,
     alignH: hmUI.align.CENTER_H,
   })
+}
+
+function getJuzVerses(juz_number) {
+  const verseMapping = juzs[juz_number - 1].verse_mapping;
+  const verses = [];
+  const surahs = [];
+  for (const surah in verseMapping) {
+    surahs.push(parseInt(surah));
+  }
+
+  surahs.sort();
+  surahs.forEach((surah) => {
+    const verseSingleMapping = verseMapping[surah + ""];
+    const start = verseSingleMapping.split("-")[0];
+    const end = verseSingleMapping.split("-")[1];
+    for (let i = start; i <= end; i++) {
+      verses.push(surah + ":" + i);
+    }
+  });
+
+  return verses;
+}
+
+function getChapterVerses(surah_number) {
+  const verses = [];
+  for (let i = 1; i <= NUM_VERSES[surah_number - 1]; i++) {
+    verses.push(surah_number + ":" + i);
+  }
+
+  return verses;
+}
+
+function downloadVerse() {
+  verseIdx++;
+  if (verseIdx === 3) {
+    push({
+      url: playerPage,
+    });
+  }
+  const surah_number = getApp()._options.globalData.verses[verseIdx].split(":")[0];
+  const verse_number = getApp()._options.globalData.verses[verseIdx].split(":")[1];
+  const fileName = surah_number.padStart(3, "0") + verse_number.padStart(3, "0") + ".mp3"
+  if (checkExists(fileName)) {
+    downloadVerse();
+    return;
+  }
+  const relativePath = getSurahInfo().relativePath + fileName;
+  console.log("relativePath=" + relativePath);
+  apiCall("getVerseRecitation", page, thisPage, {relativePath});
+}
+
+function downloadVerses() {
+  const relativePath = getSurahInfo().relativePath;
+  console.log("relativePath=" + relativePath);
+  if (relativePath) {
+    downloadVerse();
+  } else {
+    quranComApiModule.getVersesAudioPaths(page,
+      getSurahInfo().recitation.split(",")[1],
+      audio_files => {
+        const relativePath = audio_files[0].url.substring(0, audio_files[0].url.lastIndexOf("/") + 1);
+        setSurahInfo("relativePath", relativePath)
+        console.log("relativePath=" + relativePath);
+        downloadVerse();
+      });
+  }
 }

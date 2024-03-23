@@ -1,14 +1,14 @@
 import hmUI from "@zos/ui";
 import * as appService from "@zos/app-service";
 import {BasePage} from "@zeppos/zml/base-page";
-import { log as Logger } from "@zos/utils";
-import { onDigitalCrown, KEY_HOME } from '@zos/interaction'
-import { queryPermission, requestPermission } from "@zos/app";
+import {log as Logger} from "@zos/utils";
+import {onDigitalCrown, KEY_HOME} from '@zos/interaction'
+import {queryPermission, requestPermission} from "@zos/app";
 import * as Styles from "./style.r.layout.js";
-import { humanizeTime, route } from "../libs/utils.js";
-import { getChapters, getSurahInfo } from "../libs/localStorage.js";
-import { getText } from "@zos/i18n";
-import { replace } from "@zos/router";
+import {humanizeTime, NUM_VERSES} from "../libs/utils.js";
+import {getChapters, getSurahInfo} from "../libs/localStorage.js";
+import {getText} from "@zos/i18n";
+import {replace} from "@zos/router";
 
 let thisFile = "page/player";
 const serviceFile = "app-service/player_service";
@@ -38,7 +38,7 @@ function startPlayerService(vm) {
   logger.log(`=== start service: ${serviceFile} ===`);
   const result = appService.start({
     url: serviceFile,
-    param: `fileName=${getSurahInfo().fileName}&action=${vm.state.action}`,
+    param: `action=${vm.state.action}&verses=${vm.state.verses.join(",")}`,
     complete_func: (info) => {
       logger.log(`startService result: ` + JSON.stringify(info));
       // hmUI.showToast({ text: `start result: ${info.result}` });
@@ -57,30 +57,45 @@ Page({
   state: {
     running: false,
     action: "start",
+    verses,
+    index: 0,
+    chapter,
+    verse,
+  },
+
+  onInit(params) {
+    this.state.verses = getApp()._options.globalData.verses;
+    logger.log("player verses=" + this.state.verses);
+
   },
 
   build() {
     const vm = this;
-    const surahInfo = getSurahInfo();
+//        const surahInfo = getSurahInfo();
     let services = appService.getAllAppServices();
     vm.state.running = services.includes(serviceFile);
 
     logger.log("service status %s", vm.state.running);
 
-    const chapterInfo = getChapters()[surahInfo.number - 1];
+
+    this.state.chapter = parseInt(this.state.verses[this.state.index].split(":")[0]);
+    this.state.verse = parseInt(this.state.verses[this.state.index].split(":")[1]);
+    const chapterInfo = getChapters()[this.state.chapter - 1];
     hmUI.createWidget(hmUI.widget.TEXT, {
       ...Styles.PLAYER_TEXT,
-      text: "Surah: " + surahInfo.fileName + "\n" + chapterInfo.name_simple + "[" + chapterInfo.translated_name.name + "]",
+      text: "Surah: " + this.state.chapter +
+        "\n" + chapterInfo.name_simple + "[" + chapterInfo.translated_name.name + "]" +
+        "\nVerse " + this.state.verse + "/" + NUM_VERSES[this.state.chapter],
     });
 
     const playerButtons = [
-      { src: "volume-decrease.png", action:"dec-vol", service:true },
-      { src: "back.png", action:"previous", service:false  },
-      { src: "play.png", action: "play", service:true },
-      { src: "pause.png", action: "pause", service:true },
-      { src: "stop.png", action: "stop", service:true },
-      { src: "forward.png", action: "next", service:false },
-      { src: "volume-increase.png", action:"inc-vol", service:true  },
+      {src: "volume-decrease.png", action: "dec-vol", service: true},
+      {src: "back.png", action: "previous", service: false},
+      {src: "play.png", action: "play", service: true},
+      {src: "pause.png", action: "pause", service: true},
+      {src: "stop.png", action: "stop", service: true},
+      {src: "forward.png", action: "next", service: false},
+      {src: "volume-increase.png", action: "inc-vol", service: true},
     ];
 
 
@@ -98,11 +113,15 @@ Page({
           } else {
             let offset = undefined;
             switch (playerButton.action) {
-              case "previous": offset = -1; break;
-              case "next": offset = 1; break;
+              case "previous":
+                offset = -1;
+                break;
+              case "next":
+                offset = 1;
+                break;
             }
 
-            route(vm.state.surahIndex + offset);
+//                        route(vm.state.surahIndex + offset);
           }
         },
       });
@@ -119,7 +138,6 @@ Page({
       playerLabel.setProperty(hmUI.prop.TEXT, elapsed + "/" + total);
     }, 500)
 
-    console.log("fileName: " + surahInfo.fileName);
     permissionRequest(vm);
   },
   onPause() {
@@ -127,7 +145,7 @@ Page({
   },
   onResume() {
     logger.log("page on resume invoke");
-    replace({ url: `${thisFile}`});
+    replace({url: `${thisFile}`});
   },
   onDestroy() {
     logger.log("page on destroy invoke");

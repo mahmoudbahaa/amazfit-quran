@@ -1,5 +1,4 @@
-import { gettext }from 'i18n';
-import { recitations } from "./recitations";
+import {gettext} from 'i18n';
 
 const quranicaudioBaseUrl = "https://quranicaudio.com/api/";
 
@@ -60,9 +59,9 @@ AppSettingsPage({
             props.settingsStorage.setItem('recitation', val);
           },
         }),
-        Text({
-          paragraph: true,
-        }, recitationDesc)]
+          Text({
+            paragraph: true,
+          }, recitationDesc)]
       ),
       Section(
         {
@@ -78,9 +77,9 @@ AppSettingsPage({
     ])
   },
 
-  getStorage(props) { 
+  getStorage(props) {
     this.state.surahLang = props.settingsStorage.getItem('surahLang') || 'English,en'
-    this.state.recitation = props.settingsStorage.getItem('recitation') || 'Mishari Rashid al-`Afasy,114,mishaari_raashid_al_3afaasee/'
+    this.state.recitation = props.settingsStorage.getItem('recitation') || 'Mishari Rashid al-`Afasy,7'
 
     this.state.langs = props.settingsStorage.getItem('languages');
     this.state.recitations = props.settingsStorage.getItem('recitations');
@@ -102,8 +101,17 @@ AppSettingsPage({
 
     if (this.state.recitations) {
       this.state.recitations = JSON.parse(this.state.recitations);
+      this.state.recitations = this.state.recitations.map(recitation => {
+        return {
+          name: recitation.translated_name.name,
+          value: recitation.translated_name.name + "," + recitation.id,
+        }
+          ;
+      });
     } else {
-      this.state.recitations = recitations;
+      this.getLanguages(props.settingsStorage, this.state.surahLang.split(",")[1]);
+      this.state.recitations = [];
+      this.state.error += "Please wait while retreving recitations\n";
     }
 
 
@@ -114,7 +122,7 @@ AppSettingsPage({
       };
     });
 
-    this.state.error = "Please wait while retreving languages\n";   
+    this.state.error = "Please wait while retreving languages\n";
   },
 
   async get(res, endPoint, baseUrl = "https://api.quran.com/api/v4/") {
@@ -147,7 +155,6 @@ AppSettingsPage({
         return;
       }
 
-      // result.data.languages = result.data.languages.map(({id, name, iso_code, native_name, direction}) => ({id, name, iso_code, native_name, direction}))
       result.data.languages.forEach(lang => {
         delete lang.translations_count;
         delete lang.translated_name;
@@ -162,7 +169,20 @@ AppSettingsPage({
       });
 
       settingsLib.setItem("languages", JSON.stringify(result.data.languages));
-    },
-      'resources/languages');
+    }, 'resources/languages');
+  },
+
+  getRecitations(settingsLib, lang) {
+    console.log("Getting Recitations");
+    this.get(result => {
+      console.log("Status: ", result.status);
+
+      if (result.status === "error") {
+        console.log("Error:" + result.error);
+        return;
+      }
+
+      settingsLib.setItem("recitations", JSON.stringify(result.data.recitations));
+    }, '/resources/recitations?language=' + lang);
   },
 })

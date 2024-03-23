@@ -1,7 +1,7 @@
 {
   "configVersion": "v3",
   "app": {
-    "appId": 26640,
+    "appId": 26650,
     "appName": "Quran",
     "appType": "app",
     "version": {
@@ -17,7 +17,6 @@
     "device:os.bg_service",
     "device:os.ble",
     "device:os.local_storage",
-
     "device:os.alarm",
     "device:os.notification"
   ],
@@ -33,10 +32,7 @@
       "module": {
         "page": {
           "pages": [
-            "page/index",
             "page/select",
-            "page/confirm",
-            "page/download",
             "page/player"
           ]
         },
@@ -47,7 +43,9 @@
           "path": "setting/index"
         },
         "app-service": {
-          "services": ["app-service/player_service"]
+          "services": [
+            "app-service/player_service"
+          ]
         }
       },
       "platforms": [
@@ -67,5 +65,6 @@
       "appName": "القرآن"
     }
   },
-  "defaultLanguage": "en-US"
+  "defaultLanguage": "en-US",
+  "debug": true
 }
