@@ -1,24 +1,20 @@
 <p align="center">
   <a href="" rel="noopener">
- <img width=200px height=200px src="https://i.imgur.com/6wj0hh6.jpg" alt="Project logo"></a>
+ <img width=200px height=200px src="https://raw.githubusercontent.com/mahmoudbahaa/amazfit-quran/main/assets/gt.r/icon.png" alt="Project logo"></a>
 </p>
-
-<h3 align="center">download</h3>
 
 <div align="center">
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
-[![GitHub Issues](https://img.shields.io/github/issues/kylelobo/The-Documentation-Compendium.svg)](https://github.com/kylelobo/The-Documentation-Compendium/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/kylelobo/The-Documentation-Compendium.svg)](https://github.com/kylelobo/The-Documentation-Compendium/pulls)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/mahmoudbahaa/amazfit-quran.svg)](https://github.com/mahmoudbahaa/amazfit-quran/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/mahmoudbahaa/amazfit-quran.svg)](https://github.com/mahmoudbahaa/amazfit-quran/pulls)
+[![License](https://img.shields.io/badge/license-APACHE-blue.svg)](/LICENSE)
 
 </div>
 
 ---
 
-<p align="center"> Quran on Amazfit Watches
-    <br> 
-</p>
+# <div align="center"> Quran on Amazfit Watches </div>
 
 ## 📝 Table of Contents
 
@@ -64,7 +60,7 @@ zeus preview
 
 ## 🎈 Usage <a name="usage"></a>
 
-Add notes about how to use the system.
+To Be Added Later
 
 ## ⛏️ Built Using <a name = "built_using"></a>
 
@@ -81,8 +77,8 @@ See also the list of [contributors](https://github.com/mahmoudbahaa/amazfit-qura
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
 
 - Hat tip to anyone whose code was used
-- Inspiration
-- References
+- The folks at Quran.com
+- Logo moified from <a href="https://www.freepik.com/free-vector/holy-book-koran-stand-ramadan-kareem-card-background_39514054.htm#page=2&query=quran%20logo&position=0&from_view=keyword&track=ais&uuid=a2650f62-e506-47bf-bed5-5ac0ee4e309e">Image by Harryarts</a> on Freepik
 
 ## :memo: License <a name = "license"></a>
   
