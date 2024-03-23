@@ -5,8 +5,24 @@ import * as appService from "@zos/app-service";
 import { getSurahInfo, setSurahInfo } from "./localStorage";
 
 export const { height: DEVICE_HEIGHT, width: DEVICE_WIDTH } = getDeviceInfo();
-export const CHAPTERS_PER_PAGE = 10;
+
 export const NUM_CHAPTERS = 30;
+E
+export function nextChapterEnd(currentEnd) {
+  switch (currentEnd) {
+    case 0: return 22;
+    case 22: return 29;
+    case 29: return NUM_CHAPTERS;
+  }
+}
+
+export function nextChapterStart(currentStart) {
+  switch (currentStart) {
+    case 22: return 0;
+    case 29: return 22;
+    case NUM_CHAPTERS: return 29;
+  }
+}
 
 export function selectPage() {
   const serviceFile = "app-service/player_service";

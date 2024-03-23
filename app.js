@@ -10,8 +10,10 @@ App(
       isDownloadTransfer: false,
       surahDuration: NaN,
       playerDuration: NaN,
+      startParams: undefined,
     },
-    onCreate() {
+    onCreate(params) {
+      this.globalData.startParams = params;
       console.log("app on create invoke");
     },
 

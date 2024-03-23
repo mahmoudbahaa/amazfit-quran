@@ -17,22 +17,7 @@ export class TextEntry {
     }
 
     _init() {
-        this.widget = hmUI.createWidget(hmUI.widget.TEXT, this._widgetConfig);
-    }
-
-    _postInit() {
-
-    }
-
-    _setPositionY(y) {
-        this.positionY = y;
-        this.widget.setProperty(hmUI.prop.MORE, this._widgetConfig);
-    }
-
-    setText(text) {
-        this.config.text = text;
-        this.widget.setProperty(hmUI.prop.MORE, this._widgetConfig);
-        this.screen.onHeightChange(this);
+        this.widget = this.screen.vc.createWidget(hmUI.widget.TEXT, this._widgetConfig);
     }
 
     get _widgetConfig() {

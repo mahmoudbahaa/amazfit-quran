@@ -30,7 +30,7 @@ switch(deviceClass) {
     ICON_SIZE_SMALL = 32;
     break;
   case "circle": // gtr/falcon/t-rex
-    SCREEN_MARGIN_Y = 48;
+    SCREEN_MARGIN_Y = 64;
     SCREEN_MARGIN_X = 48;
     BASE_FONT_SIZE = 24;
     ICON_SIZE_SMALL = 32;

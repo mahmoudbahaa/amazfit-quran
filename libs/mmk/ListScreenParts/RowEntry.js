@@ -29,27 +29,6 @@ export class RowEntry extends CardEntry {
             this.descView = this.group.createWidget(hmUI.widget.TEXT, this._descrViewConfig);
     }
 
-    _postInit() {
-        super._postInit();
-		if(this.rowConfig.callback) {
-			this.getEvents().ontouch = (e) => this.rowConfig.callback(this, e);
-		}
-    }
-
-    setText(text) {
-        this.rowConfig.text = text;
-        this.textView.setProperty(hmUI.prop.TEXT, text);
-        this._text_setHeight(this.rowViewHeight);
-    }
-
-    _text_setHeight(height) {
-        super.setHeight(height);
-        this.textView.setProperty(hmUI.prop.MORE, this._textViewConfig);
-        this.iconView.setProperty(hmUI.prop.MORE, this._iconViewConfig);
-        if(this.rowConfig.description)
-            this.descView.setProperty(hmUI.prop.MORE, this._descrViewConfig);
-    }
-
     get _iconWidth() {
         return this.config.iconWidth === undefined ? ICON_SIZE_SMALL : this.config.iconWidth;
     }
@@ -81,7 +60,7 @@ export class RowEntry extends CardEntry {
     get _textViewConfig() {
         return {
 			x: this.textX,
-			y: 18,
+			y: 9,
 			w: this.textWidth,
 			// h: this.rowViewHeight - 36,
 			align_h: this.rowConfig.alignH,
@@ -95,7 +74,7 @@ export class RowEntry extends CardEntry {
    get _descrViewConfig() {
         return {
             x: this.textX,
-            y: 18 + this.textHeight,
+            y: 9 + this.textHeight,
             w: this.textWidth,
             // h: this.rowViewHeight - 36,
             align_h: this.rowConfig.alignH,
@@ -133,6 +112,6 @@ export class RowEntry extends CardEntry {
     }
 
     get rowViewHeight() {
-        return Math.max(this.screen.baseRowHeight, this.textHeight + this.descriptionHeight + 36);
+        return Math.max(this.screen.baseRowHeight, this.textHeight + this.descriptionHeight + 18);
     }
 }

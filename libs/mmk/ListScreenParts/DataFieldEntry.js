@@ -28,26 +28,6 @@ export class DataFieldEntry extends CardEntry {
         this.textView = this.group.createWidget(hmUI.widget.TEXT, this._textViewConfig);
     }
 
-    _postInit() {
-        super._postInit();
-		if(this.rowConfig.callback) {
-			this.getEvents().ontouch = (e) => this.rowConfig.callback(this, e);
-		}
-    }
-
-    setText(text, headline=null) {
-        this.rowConfig.text = text;
-        this.textView.setProperty(hmUI.prop.TEXT, text);
-        if(headline !== null) this.headlineView.setProperty(hmUI.prop.TEXT, headline);
-        this._text_setHeight(this.rowViewHeight);
-    }
-
-    _text_setHeight(height) {
-        super.setHeight(height);
-        this.textView.setProperty(hmUI.prop.MORE, this._textViewConfig);
-        this.headlineView.setProperty(hmUI.prop.MORE, this._headlineViewConfig);
-    }
-
     get _headlineViewConfig() {
         return {
             x: 0,

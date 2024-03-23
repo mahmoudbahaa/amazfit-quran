@@ -1,8 +1,8 @@
 import hmUI from "@zos/ui";
 import { px } from '@zos/utils'
 import { log } from "@zos/utils";
-import { CHAPTERS_PER_PAGE, NUM_CHAPTERS, selectPage } from "../libs/utils.js";
-import { replace } from "@zos/router";
+import { NUM_CHAPTERS, nextChapterEnd, selectPage } from "../libs/utils.js";
+import { push, replace } from "@zos/router";
 import { createList } from "../components/list/index.js";
 import * as Styles from "./style.r.layout";
 import { getLanguage } from "@zos/settings";
@@ -18,21 +18,31 @@ Page({
   onCreate(e) {
     logger.log("index page on create invoke");
   },
-  onInit() {
+  onInit(params) {
     console.log("lang" + getLanguage());
     logger.log("index page on init invoke");
-    selectPage();
+
+    if (params) {
+      const start = parseInt(params.split(",")[0]);
+      const end = parseInt(params.split(",")[1]);
+
+      push({
+        url: "page/select",
+        params: start + "," + end,
+      });
+    } else {
+      push({
+        url: "page/select",
+        params: "0," + nextChapterEnd(0),
+      });
+      selectPage();
+    }
   },
   onShow() {
     logger.log("index page on show invoke");
   },
 
   build() {
-    replace({
-      url: "page/select",
-      params: "0," + CHAPTERS_PER_PAGE,
-    });
-
     // const title = hmUI.createWidget(hmUI.widget.TEXT, {
     //   ...Styles.MAIN_TITLE_STYLE,
     //   text: _("Choose By")

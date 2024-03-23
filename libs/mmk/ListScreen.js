@@ -11,17 +11,28 @@ import {CardEntry} from "./ListScreenParts/CardEntry";
 import {RowEntry} from "./ListScreenParts/RowEntry";
 import {DataFieldEntry} from "./ListScreenParts/DataFieldEntry";
 import {TextEntry} from "./ListScreenParts/TextEntry";
+import { DEVICE_WIDTH } from '../utils';
 
 
 export class ListScreen {
 	constructor() {
+		this._init();
+	}
+
+	_init() {
 		this.positionY = SCREEN_MARGIN_Y;
 		this.fontSize = BASE_FONT_SIZE;
 		this.accentColor = 0x123456;
 		this.entries = [];
+		this.vc = hmUI.createWidget(hmUI.widget.VIEW_CONTAINER);
 	}
 
 	build() {}
+
+	clear() {
+		hmUI.deleteWidget(this.vc);
+		this._init();
+	}
 
 	headline(text) {
 		const lineHeight = Math.floor(BASE_FONT_SIZE * 1.5);
@@ -35,18 +46,11 @@ export class ListScreen {
 			text_size: BASE_FONT_SIZE - 4,
 			text
 		};
-		const widget = hmUI.createWidget(hmUI.widget.TEXT, config);
+		const widget = vc.createWidget(hmUI.widget.TEXT, config);
 		const entry = {
 			widget,
 			viewHeight: lineHeight,
 			positionY: this.positionY,
-			_setPositionY: (y) => {
-				entry.positionY = y;
-				widget.setProperty(hmUI.prop.MORE, {
-					...config,
-					y
-				});
-			}
 		};
 
 		this._registerRow(entry);
@@ -62,58 +66,13 @@ export class ListScreen {
 		};
 
 		const entry = {
-			widget: hmUI.createWidget(hmUI.widget.IMG, config),
+			widget: vc.createWidget(hmUI.widget.IMG, config),
 			positionY: this.positionY,
 			viewHeight: height,
-			_setPositionY(y) {
-				entry.positionY = y;
-				entry.widget.setProperty(hmUI.prop.MORE, {...config, y});
-			}
 		};
 
 		this._registerRow(entry);
 		return entry;
-	}
-
-	twoActionBar(items) {
-		if(WIDGET_WIDTH < 300) {
-			const row = this.row(items[0]);
-			this.row(items[1]);
-			return row;
-		}
-
-		const secondSize = this.baseRowHeight;
-		const firstWidth = WIDGET_WIDTH - secondSize - 8;
-
-		const button = this.card({
-			width: secondSize,
-			height: secondSize,
-			offsetX: firstWidth + 8,
-			radius: Math.floor(secondSize / 2),
-			color: this.accentColor,
-			dontChangePosY: true
-		});
-
-		const iconPos = Math.floor((secondSize - ICON_SIZE_SMALL) / 2);
-		button.group.createWidget(hmUI.widget.IMG, {
-			x: iconPos,
-			y: iconPos,
-			src: items[1].icon
-		});
-
-		const row = this.row({
-			...items[0],
-			card: {
-				width: firstWidth,
-				radius: Math.floor(secondSize / 2),
-			},
-		});
-
-		if(items[1].callback) {
-			button.getEvents().ontouch = items[1].callback;
-		}
-
-		return row;
 	}
 
 	text(userConfig) {
@@ -187,7 +146,10 @@ export class ListScreen {
 	}
 
 	moreButton(userConfig) {
-		const more = hmUI.createWidget(hmUI.widget.BUTTON, {
+		const more = vc.createWidget(hmUI.widget.BUTTON, {
+			x: 0,
+			w: DEVICE_WIDTH,
+			h: 64,
 			...userConfig,
 			y: this.positionY,
 			click_func: () => {
@@ -200,20 +162,8 @@ export class ListScreen {
 	_classBasedEntry(ClassEntry, userConfig) {
 		const entry = new ClassEntry(userConfig, this, this.positionY);
 		entry._init();
-		entry._postInit();
         this._registerRow(entry);
 		return entry;
-	}
-
-	onHeightChange(entry) {
-		const delta = entry.viewHeight - entry._lastHeight;
-
-		this.positionY += delta;
-		entry._lastHeight = entry.viewHeight;
-
-		for(let i = entry._index + 1; i < this.entries.length; i++) {
-			this.entries[i]._setPositionY(this.entries[i].positionY + delta);
-		}
 	}
 
 	_registerRow(data) {
@@ -229,7 +179,7 @@ export class ListScreen {
 			this._brh_cached = hmUI.getTextLayout(" ", {
 				text_size: this.fontSize,
 				text_width: 96,
-			}).height + 36;
+			}).height + 18;
 		}
 		return this._brh_cached;
 	}

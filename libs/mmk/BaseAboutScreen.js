@@ -3,7 +3,6 @@ import { scrollTo } from '@zos/page';
 import { push } from '@zos/router';
 import * as hmUI from '@zos/ui';
 
-import {Path} from "./Path";
 import {
   IS_MI_BAND_7,
   SCREEN_WIDTH,
@@ -33,11 +32,6 @@ export class BaseAboutScreen {
 
     this.donateText = "";
     this.donateUrl = null;
-
-    this.uninstallText = "Uninstall";
-    this.uninstallConfirm = "Tap again to confirm";
-    this.uninstallResult = "Ready, please reboot your device. Click to open settings";
-
     this.hiddenInfo = "";
 
     this.posY = SCREEN_MARGIN_Y;
@@ -98,78 +92,6 @@ export class BaseAboutScreen {
       });
       this.posY += BASE_FONT_SIZE * 3 + 16;
     }
-
-    if(this.appId && IS_MI_BAND_7) {
-      hmUI.createWidget(hmUI.widget.BUTTON, {
-        x: SCREEN_MARGIN_X + 16,
-        y: this.posY,
-        w: WIDGET_WIDTH - 32,
-        text_size: BASE_FONT_SIZE - 2,
-        h: BASE_FONT_SIZE * 3,
-        text: this.uninstallText,
-        radius: 24,
-        color: 0xFFFFFF,
-        normal_color: 0x333333,
-        press_color: 0x555555,
-        click_func: () => this.uninstall()
-      });
-      this.posY += BASE_FONT_SIZE * 3 + 16;
-    }
-  }
-
-  uninstall() {
-    if(!this.confirmed) {
-      hmUI.showToast({
-        text: this.uninstallConfirm
-      });
-      this.confirmed = true;
-      return;
-    }
-
-    const dirname = this.appId.toString(16).padStart(8, "0").toUpperCase();
-    this.onUninstall();
-
-    const appDir = new Path("full", "/storage/js_apps/" + dirname);
-    appDir.rmTree();
-
-    const dataDir = new Path("full", "/storage/js_apps/data" + dirname);
-    dataDir.rmTree();
-
-    scrollTo(0);
-    hmUI.setLayerScrolling(false);
-    hmUI.createWidget(hmUI.widget.FILL_RECT, {
-      x: 0,
-      y: 0,
-      w: 192,
-      h: 482,
-      color: 0x0
-    });
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      x: 0,
-      y: 200, 
-      w: 192,
-      h: 290,
-      text: this.uninstallResult,
-      text_style: hmUI.text_style.WRAP,
-      align_h: hmUI.align.CENTER_H,
-      color: 0xFFFFFF,
-    });
-    hmUI.createWidget(hmUI.widget.IMG, {
-      x: 0,
-      y: 0,
-      w: 192,
-      h: 490,
-      src: ""
-    }).addEventListener(hmUI.event.CLICK_UP, () => {
-      hmApp.startApp({
-        url: "Settings_systemScreen",
-        native: true
-      });
-    });
-  }
-
-  onUninstall() {
-
   }
 
   openDonate() {
