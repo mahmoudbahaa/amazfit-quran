@@ -1,11 +1,10 @@
-import * as hmUI from "@zos/ui";
-import {DEVICE_HEIGHT, DEVICE_WIDTH} from "./../../libs/utils";
-import {px} from "@zos/utils";
-import {_} from "../../libs/lang";
+import * as hmUI from '@zos/ui'
+import { px } from '@zos/utils'
+import {SCREEN_HEIGHT, SCREEN_WIDTH} from "../../libs/mmk/UiParams";
 
-let loadingAnim = undefined;
+let loadingAnim
 
-export function createLoadingWidget(vc = hmUI, y) {
+export function createLoadingWidget (vc = hmUI, y) {
   loadingAnim = vc.createWidget(hmUI.widget.IMG_ANIM, {
     anim_path: 'loading-ani',
     anim_prefix: 'ani',
@@ -15,14 +14,14 @@ export function createLoadingWidget(vc = hmUI, y) {
     repeat_count: 0,
     anim_repeat: true,
     anim_status: hmUI.anim_status.START,
-    x: DEVICE_WIDTH / 2 - px(80),
-    y: y === undefined ? DEVICE_HEIGHT / 2 - px(80) : y,
+    x: SCREEN_WIDTH / 2 - px(80),
+    y: y === undefined ? SCREEN_HEIGHT / 2 - px(80) : y,
     anim_complete_call: () => {
       console.log('animation complete')
     }
-  });
+  })
 }
 
-export function deleteLoadingWidget(vc = hmUI) {
-  if (loadingAnim) vc.deleteWidget(loadingAnim);
+export function deleteLoadingWidget (vc = hmUI) {
+  if (loadingAnim) vc.deleteWidget(loadingAnim)
 }

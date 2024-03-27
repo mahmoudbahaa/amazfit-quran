@@ -1,0 +1,97 @@
+######################################### Select Surah/Juz' Screen ############################################
+
+msgid "Surah"
+msgstr "سورة"
+
+msgid "Juz'"
+msgstr "الجزء"
+
+msgid "Verse"
+msgstr "الآية"
+
+msgid "Choose By"
+msgstr "إختر بواسطة"
+
+msgid "Previous"
+msgstr "سابق"
+
+msgid "Next"
+msgstr "لاحق"
+
+######################################### Settings Screen ############################################
+
+msgid "Main Language"
+msgstr "الغة الأساسية"
+
+msgid "Downloading"
+msgstr "جاري تنزيل"
+
+msgid "Translation Language"
+msgstr "لغة الترجمة"
+
+msgid "Translation"
+msgstr "الترجمة"
+
+msgid "Recitation"
+msgstr "القارء"
+
+######################################### Numbers ############################################
+
+msgid "."
+msgstr ","
+
+msgid "0"
+msgstr "٠"
+
+msgid "1"
+msgstr "١"
+
+msgid "2"
+msgstr "٢"
+
+msgid "3"
+msgstr "٣"
+
+msgid "4"
+msgstr "٤"
+
+msgid "5"
+msgstr "٥"
+
+msgid "6"
+msgstr "٦"
+
+msgid "7"
+msgstr "٧"
+
+msgid "8"
+msgstr "٨"
+
+msgid "9"
+msgstr "٩"
+
+######################################### About Screen ############################################
+
+msgid "Quran App"
+msgstr "تطبيق القرآن"
+
+msgid "version"
+msgstr "إصدار"
+
+msgid "Developer"
+msgstr "مبرمج"
+
+msgid "Designer"
+msgstr "مصمم"
+
+msgid "Mahmoud Bahaa"
+msgstr "محمود بهاء"
+
+msgid "Nisreen Ali"
+msgstr "نسرين علي"
+
+msgid "number"
+msgstr "رقم"
+
+msgid "In The name of Allah"
+msgstr "بسم الله الرحمن الرحيم"

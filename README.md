@@ -1,4 +1,4 @@
-<p align="center">
+<p >
   <a href="" rel="noopener">
  <img width=200px height=200px src="https://raw.githubusercontent.com/mahmoudbahaa/amazfit-quran/main/assets/gt.r/icon.png" alt="Project logo"></a>
 </p>

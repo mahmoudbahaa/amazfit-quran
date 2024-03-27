@@ -1,155 +1,208 @@
-import hmUI from "@zos/ui";
-import * as appService from "@zos/app-service";
-import {BasePage} from "@zeppos/zml/base-page";
-import {log as Logger} from "@zos/utils";
-import {onDigitalCrown, KEY_HOME} from '@zos/interaction'
-import {queryPermission, requestPermission} from "@zos/app";
-import * as Styles from "./style.r.layout.js";
-import {humanizeTime, NUM_VERSES} from "../libs/utils.js";
-import {getChapters, getSurahInfo} from "../libs/localStorage.js";
-import {getText} from "@zos/i18n";
-import {replace} from "@zos/router";
+/* global getApp, Page */
+import hmUI from '@zos/ui'
+import * as appService from '@zos/app-service'
+import { log as Logger, px } from '@zos/utils'
+import { queryPermission, requestPermission } from '@zos/app'
+import { setWakeUpRelaunch } from '@zos/display'
+import { replace } from '@zos/router'
+import { BasePage } from '@zeppos/zml/base-page'
+import * as Styles from './style.r.layout.js'
+import { checkVerseExists } from '../libs/utils.js'
+import { playerHelper as playerHelperFunc } from '../app-service/playerHelper'
+import { getVerseText } from '../libs/storage/localStorage.js'
+import { SCREEN_WIDTH } from '../libs/mmk/UiParams'
+import { NUM_VERSES } from '../libs/constants'
+import { _ } from '../libs/i18n/lang'
 
-let thisFile = "page/player";
-const serviceFile = "app-service/player_service";
-const logger = Logger.getLogger("player page");
-const permissions = ["device:os.bg_service"];
+const thisPage = 'page/player'
+const serviceFile = 'app-service/player_service'
+const logger = Logger.getLogger('player page')
+const permissions = ['device:os.bg_service']
+const isService = false
+let lastVerseInfo = -1000
 
-function permissionRequest(vm) {
-  const [result2] = queryPermission({
-    permissions,
-  });
-
-  if (result2 === 0) {
-    requestPermission({
-      permissions,
-      callback([result2]) {
-        if (result2 === 2) {
-          startPlayerService(vm);
-        }
-      },
-    });
-  } else if (result2 === 2) {
-    startPlayerService(vm);
-  }
+let playerHelper
+if (!isService) {
+  playerHelper = playerHelperFunc()
 }
 
-function startPlayerService(vm) {
-  logger.log(`=== start service: ${serviceFile} ===`);
-  const result = appService.start({
-    url: serviceFile,
-    param: `action=${vm.state.action}&verses=${vm.state.verses.join(",")}`,
-    complete_func: (info) => {
-      logger.log(`startService result: ` + JSON.stringify(info));
-      // hmUI.showToast({ text: `start result: ${info.result}` });
-      if (info.result) {
-        vm.state.running = true;
+Page(
+  BasePage({
+    state: {
+      action: 'start',
+      interval: undefined
+    },
+
+    onInit () {
+      setWakeUpRelaunch({
+        relaunch: true
+      })
+    },
+
+    permissionRequest () {
+      const [result2] = queryPermission({
+        permissions
+      })
+
+      const that = this
+      if (result2 === 0) {
+        requestPermission({
+          permissions,
+          callback ([result2]) {
+            if (result2 === 2) {
+              that.startPlayerService()
+            }
+          }
+        })
+      } else if (result2 === 2) {
+        this.startPlayerService()
       }
     },
-  });
 
-  if (result) {
-    logger.log("startService result: ", result);
-  }
-}
+    getServiceParam () {
+      let extraParams = ''
+      if (this.state.action === 'start') {
+        const verses = getApp()._options.globalData.verses
+        const exists = verses.map((verse) => checkVerseExists(verse) ? 't' : 'f')
+        extraParams = `&exists=${exists.join(',')}`
+      }
 
-Page({
-  state: {
-    running: false,
-    action: "start",
-    verses,
-    index: 0,
-    chapter,
-    verse,
-  },
+      return `action=${this.state.action}${extraParams}`
+    },
 
-  onInit(params) {
-    this.state.verses = getApp()._options.globalData.verses;
-    logger.log("player verses=" + this.state.verses);
+    startPlayerService () {
+      const param = this.getServiceParams()
+      appService.start({
+        url: serviceFile,
+        param
+      })
+    },
 
-  },
+    onCall (params) {
+      if (isService) return
 
-  build() {
-    const vm = this;
-//        const surahInfo = getSurahInfo();
-    let services = appService.getAllAppServices();
-    vm.state.running = services.includes(serviceFile);
+      playerHelper.onCall(params, this)
+    },
 
-    logger.log("service status %s", vm.state.running);
+    getSurahLabel (verseInfo) {
+      return `${_('Surah')}: ${verseInfo.split(':')[0]}`
+    },
 
+    getDownloadLabel (verseIdx) {
+      const verseText = verseIdx ? this.getVerseLabel(getApp()._options.globalData.verses[verseIdx]) : '...'
+      return `${_('Downloading')} ${_('Verse')} ${verseText}`
+    },
 
-    this.state.chapter = parseInt(this.state.verses[this.state.index].split(":")[0]);
-    this.state.verse = parseInt(this.state.verses[this.state.index].split(":")[1]);
-    const chapterInfo = getChapters()[this.state.chapter - 1];
-    hmUI.createWidget(hmUI.widget.TEXT, {
-      ...Styles.PLAYER_TEXT,
-      text: "Surah: " + this.state.chapter +
-        "\n" + chapterInfo.name_simple + "[" + chapterInfo.translated_name.name + "]" +
-        "\nVerse " + this.state.verse + "/" + NUM_VERSES[this.state.chapter],
-    });
+    getVerseLabel (verseInfo) {
+      const chapter = parseInt(verseInfo.split(':')[0])
+      const verse = parseInt(verseInfo.split(':')[1])
+      return `${_(verse.toString().padStart(3, '0'))}/${_(NUM_VERSES[chapter - 1].toString().padStart(3, '0'))}`
+    },
 
-    const playerButtons = [
-      {src: "volume-decrease.png", action: "dec-vol", service: true},
-      {src: "back.png", action: "previous", service: false},
-      {src: "play.png", action: "play", service: true},
-      {src: "pause.png", action: "pause", service: true},
-      {src: "stop.png", action: "stop", service: true},
-      {src: "forward.png", action: "next", service: false},
-      {src: "volume-increase.png", action: "inc-vol", service: true},
-    ];
+    build () {
+      const verses = getApp()._options.globalData.verses
+      const surahInfo = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...Styles.SURAH_PLAYER_LABEL,
+        text: this.getSurahLabel(verses[0])
+      })
 
+      // const verseBg =
+      hmUI.createWidget(hmUI.widget.FILL_RECT, {
+        ...Styles.VERSE_PLAYER_TEXT,
+        color: 0x222222,
+        radius: px(80)
+      })
+      const verseText = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...Styles.VERSE_PLAYER_TEXT,
+        text: ''
+      })
 
-    playerButtons.forEach((playerButton, index) => {
-      hmUI.createWidget(hmUI.widget.BUTTON, {
-        ...Styles.PLAYER_BTN,
-        x: Styles.PLAYER_BTN_X + Styles.PLAYER_BTN_OX * index,
-        normal_src: playerButton.src,
-        press_src: playerButton.src,
-        click_func: function () {
-          vm.state.action = playerButton.action;
-          console.log(playerButton.action + ' button click')
-          if (playerButton.service) {
-            permissionRequest(vm);
-          } else {
-            let offset = undefined;
-            switch (playerButton.action) {
-              case "previous":
-                offset = -1;
-                break;
-              case "next":
-                offset = 1;
-                break;
+      const verseInfo = hmUI.createWidget(hmUI.widget.TEXT, {
+        ...Styles.VERSE_PLAYER_LABEL,
+        text: ''
+      })
+
+      this.state.interval = setInterval(() => {
+        const verse = getApp()._options.globalData.curVerse
+        let verseTextText
+        if (verse !== undefined) {
+          if (lastVerseInfo === verse) return
+          lastVerseInfo = verse
+
+          verseTextText = getVerseText(verse)
+          surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
+          verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
+        } else {
+          const downVerse = getApp()._options.globalData.curDownloadedVerse
+          verseTextText = this.getDownloadLabel(downVerse)
+        }
+
+        verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
+      }, 500)
+
+      const playerButtons = [
+        { src: 'back.png', action: 'previous', left: true },
+        { src: 'play-pause.png', action: 'pause', left: true },
+        { src: 'volume-dec.png', action: 'dec-vol', left: true },
+        { src: 'forward.png', action: 'next', left: false },
+        { src: 'stop.png', action: 'stop', left: false },
+        { src: 'volume-inc.png', action: 'inc-vol', left: false }
+      ]
+
+      const vm = this
+      let startYLeft = 0
+      let startYRight = 0
+      playerButtons.forEach((playerButton) => {
+        hmUI.createWidget(hmUI.widget.BUTTON, {
+          ...Styles.PLAYER_BTN,
+          x: playerButton.left ? Styles.PLAYER_BTN_X : (SCREEN_WIDTH - Styles.PLAYER_BTN_X - Styles.PLAYER_BTN_W),
+          y: Styles.PLAYER_BTN_Y + Styles.PLAYER_BTN_OY * (playerButton.left ? startYLeft++ : startYRight++),
+          normal_src: playerButton.src,
+          press_src: playerButton.src,
+          click_func: () => {
+            vm.state.action = playerButton.action
+            if (playerButton.action === 'pause') {
+              playerButton.action = 'play'
+            } else if (playerButton.action === 'play') {
+              playerButton.action = 'pause'
             }
 
-//                        route(vm.state.surahIndex + offset);
+            if (isService) {
+              vm.permissionRequest()
+            } else {
+              playerHelper.doAction(this.getServiceParam())
+            }
           }
-        },
-      });
-    });
+        })
+      })
 
-    const playerLabel = hmUI.createWidget(hmUI.widget.TEXT, {
-      ...Styles.PLAYER_LABEL,
-      text: "00/" + humanizeTime(getApp()._options.globalData.surahDuration),
-    });
+      if (isService) {
+        this.permissionRequest()
+      } else {
+        playerHelper.doAction(this.getServiceParam(), this)
+      }
+    },
+    onPause () {
+      logger.log('page on pause invoke')
+    },
+    onResume () {
+      logger.log('page on resume invoke')
+      replace({ url: `${thisPage}` })
+    },
+    onDestroy () {
+      logger.log('page on destroy invoke')
 
-    const interval = setInterval(() => {
-      const elapsed = humanizeTime(getApp()._options.globalData.playerDuration);
-      const total = humanizeTime(getApp()._options.globalData.surahDuration);
-      playerLabel.setProperty(hmUI.prop.TEXT, elapsed + "/" + total);
-    }, 500)
+      if (isService) {
+        this.state.action = 'exit'
+        this.permissionRequest(this)
+      } else {
+        playerHelper.doExit(false)
+      }
 
-    permissionRequest(vm);
-  },
-  onPause() {
-    logger.log("page on pause invoke");
-  },
-  onResume() {
-    logger.log("page on resume invoke");
-    replace({url: `${thisFile}`});
-  },
-  onDestroy() {
-    logger.log("page on destroy invoke");
-    this.state.action = "exit";
-    permissionRequest(this);
-  },
-});
+      if (this.state.interval) {
+        clearInterval(this.state.interval)
+      }
+    }
+
+  })
+)

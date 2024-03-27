@@ -1,7 +1,7 @@
 {
   "configVersion": "v3",
   "app": {
-    "appId": 26650,
+    "appId": 26660,
     "appName": "Quran",
     "appType": "app",
     "version": {
@@ -32,6 +32,7 @@
       "module": {
         "page": {
           "pages": [
+            "page/about",
             "page/select",
             "page/player"
           ]
