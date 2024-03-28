@@ -1,13 +1,13 @@
 {
-  "name": "download",
-  "version": "1.0.0",
-  "description": "",
+  "name": "Quran",
+  "version": "0.1",
+  "description": "Quran app for downloading and playing Quran for Zepp OS 3.0",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Mahmoud Bahaa",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@zeppos/device-types": "^3.0.0",
     "eslint": "^8.57.0",
@@ -17,8 +17,5 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1"
-  },
-  "dependencies": {
-    "@zeppos/zml": "^0.0.23"
   }
 }

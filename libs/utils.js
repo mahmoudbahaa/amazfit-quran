@@ -2,19 +2,7 @@
 import { replace } from '@zos/router'
 import * as appService from '@zos/app-service'
 import { statSync } from '@zos/fs'
-import { CHAPTERS_PAGE_BOUNDARIES } from './constants'
-
-export function nextChapterEnd (currentEnd) {
-  for (let i = 0; i < CHAPTERS_PAGE_BOUNDARIES.length; i++) {
-    if (CHAPTERS_PAGE_BOUNDARIES[i] === currentEnd) return CHAPTERS_PAGE_BOUNDARIES[i + 1]
-  }
-}
-
-export function nextChapterStart (currentStart) {
-  for (let i = 0; i < CHAPTERS_PAGE_BOUNDARIES.length; i++) {
-    if (CHAPTERS_PAGE_BOUNDARIES[i] === currentStart) return CHAPTERS_PAGE_BOUNDARIES[i - 1]
-  }
-}
+import { NUM_VERSES } from './constants'
 
 export function selectPage () {
   const serviceFile = 'app-service/player_service'
@@ -23,6 +11,15 @@ export function selectPage () {
       url: 'page/player'
     })
   }
+}
+
+export function getChapterVerses (surahNumber) {
+  const verses = []
+  for (let i = 1; i <= NUM_VERSES[surahNumber - 1]; i++) {
+    verses.push(`${surahNumber}:${i}`)
+  }
+
+  return verses
 }
 
 export function parseQuery (queryString) {

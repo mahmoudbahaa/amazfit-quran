@@ -1,13 +1,15 @@
 /* global App */
-import { BaseApp } from '@zeppos/zml/base-app'
+import { BaseApp } from './libs/zml/dist/zml-app'
 
 App(
   BaseApp({
     globalData: {
       curVerse: undefined,
       curDownloadedVerse: undefined,
-      verses: undefined,
-      langCode: undefined
+      settings: undefined,
+      langCode: undefined,
+      pageNumber: 0,
+      scrollTop: 0
     },
     onCreate () {
       console.log('app on create invoke')

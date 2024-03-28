@@ -9,8 +9,8 @@
       "name": "1.0.0"
     },
     "icon": "icon.png",
-    "vender": "zepp",
-    "description": "Quran app for downloading and playing quran Surahs"
+    "vender": "mahmoudbahaa",
+    "description": "Quran app for downloading and playing Quran Surahs"
   },
   "permissions": [
     "data:os.device.info",
@@ -32,9 +32,7 @@
       "module": {
         "page": {
           "pages": [
-            "page/about",
-            "page/select",
-            "page/player"
+            "page/about"
           ]
         },
         "app-side": {

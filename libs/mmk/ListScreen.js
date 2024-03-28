@@ -8,6 +8,8 @@ import {
   SCREEN_WIDTH
 } from './UiParams'
 import { RowEntry } from './ListScreenParts/RowEntry'
+import { getScrollTop } from '@zos/page'
+import * as Styles from '../../page/style.r.layout'
 
 let lastPosY = -1000
 
@@ -40,16 +42,28 @@ export class ListScreen {
     }
   }
 
-  finalize (listIndex) {
-    this.vc.setProperty(hmUI.prop.POS_Y, 0)
+  finalize (listIndex, posY) {
+    this.vc.setProperty(hmUI.prop.POS_Y, posY)
     this.realEntriesNum = listIndex - 1
     const lastRow = this.entries[this.realEntriesNum]
     if (lastRow.setVisible) lastRow.setVisible(true)
     const excessEntries = this.entries.slice(this.realEntriesNum + 1)
     excessEntries.forEach(entry => { if (entry.setVisible) entry.setVisible(false) })
+    this.onScroll(posY)
   }
 
   row (userConfig) {
+    userConfig = {
+      ...Styles.ROW_STYLE,
+      ...userConfig,
+      card: {
+        ...Styles.ROW_STYLE.card,
+        ...userConfig.card
+      }
+    }
+
+    if (userConfig.rtl === undefined) userConfig.rtl = this.rtl
+    if (userConfig.alignH === undefined) userConfig.alignH = this.rtl ? hmUI.align.RIGHT : hmUI.align.LEFT
     return this._classBasedEntry(RowEntry, userConfig)
   }
 
@@ -58,6 +72,9 @@ export class ListScreen {
       return this.row(userConfig)
     }
 
+    if (!this.entries[index]) {
+      console.log('Index=' + index)
+    }
     this.entries[index]._update(userConfig)
   }
 

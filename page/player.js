@@ -5,12 +5,12 @@ import { log as Logger, px } from '@zos/utils'
 import { queryPermission, requestPermission } from '@zos/app'
 import { setWakeUpRelaunch } from '@zos/display'
 import { replace } from '@zos/router'
-import { BasePage } from '@zeppos/zml/base-page'
+import { BasePage } from '../libs/zml/dist/zml-page'
 import * as Styles from './style.r.layout.js'
 import { checkVerseExists } from '../libs/utils.js'
 import { playerHelper as playerHelperFunc } from '../app-service/playerHelper'
 import { getVerseText } from '../libs/storage/localStorage.js'
-import { SCREEN_WIDTH } from '../libs/mmk/UiParams'
+import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
 
@@ -29,14 +29,20 @@ if (!isService) {
 Page(
   BasePage({
     state: {
-      action: 'start',
+      verses: undefined,
+      action: undefined,
       interval: undefined
     },
 
-    onInit () {
+    onInit (verses) {
       setWakeUpRelaunch({
         relaunch: true
       })
+
+      this.state.action = 'start'
+      if (verses) {
+        this.state.verses = verses.split(',')
+      }
     },
 
     permissionRequest () {
@@ -62,9 +68,9 @@ Page(
     getServiceParam () {
       let extraParams = ''
       if (this.state.action === 'start') {
-        const verses = getApp()._options.globalData.verses
-        const exists = verses.map((verse) => checkVerseExists(verse) ? 't' : 'f')
-        extraParams = `&exists=${exists.join(',')}`
+        const verses = this.state.verses.join(',')
+        const exists = this.state.verses.map((verse) => checkVerseExists(verse) ? 't' : 'f')
+        extraParams = `&exists=${exists.join(',')}&verses=${verses}}`
       }
 
       return `action=${this.state.action}${extraParams}`
@@ -85,11 +91,11 @@ Page(
     },
 
     getSurahLabel (verseInfo) {
-      return `${_('Surah')}: ${verseInfo.split(':')[0]}`
+      return `${_('Surah')}: ${_(verseInfo.split(':')[0].toString())}`
     },
 
-    getDownloadLabel (verseIdx) {
-      const verseText = verseIdx ? this.getVerseLabel(getApp()._options.globalData.verses[verseIdx]) : '...'
+    getDownloadLabel (verse) {
+      const verseText = verse ? this.getVerseLabel(verse) : '...'
       return `${_('Downloading')} ${_('Verse')} ${verseText}`
     },
 
@@ -100,7 +106,7 @@ Page(
     },
 
     build () {
-      const verses = getApp()._options.globalData.verses
+      const verses = this.state.verses
       const surahInfo = hmUI.createWidget(hmUI.widget.TEXT, {
         ...Styles.SURAH_PLAYER_LABEL,
         text: this.getSurahLabel(verses[0])
@@ -109,7 +115,7 @@ Page(
       // const verseBg =
       hmUI.createWidget(hmUI.widget.FILL_RECT, {
         ...Styles.VERSE_PLAYER_TEXT,
-        color: 0x222222,
+        color: 0x004400,
         radius: px(80)
       })
       const verseText = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -123,22 +129,26 @@ Page(
       })
 
       this.state.interval = setInterval(() => {
-        const verse = getApp()._options.globalData.curVerse
+        let verse = getApp()._options.globalData.curVerse
         let verseTextText
         if (verse !== undefined) {
           if (lastVerseInfo === verse) return
           lastVerseInfo = verse
 
           verseTextText = getVerseText(verse)
-          surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
-          verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
         } else {
-          const downVerse = getApp()._options.globalData.curDownloadedVerse
-          verseTextText = this.getDownloadLabel(downVerse)
+          verse = getApp()._options.globalData.curDownloadedVerse
+          if (verse === undefined) {
+            verse = this.state.verses[0]
+          }
+
+          verseTextText = this.getDownloadLabel(verse)
         }
 
+        surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
+        verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
         verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
-      }, 500)
+      }, 200)
 
       const playerButtons = [
         { src: 'back.png', action: 'previous', left: true },
@@ -153,32 +163,49 @@ Page(
       let startYLeft = 0
       let startYRight = 0
       playerButtons.forEach((playerButton) => {
-        hmUI.createWidget(hmUI.widget.BUTTON, {
-          ...Styles.PLAYER_BTN,
-          x: playerButton.left ? Styles.PLAYER_BTN_X : (SCREEN_WIDTH - Styles.PLAYER_BTN_X - Styles.PLAYER_BTN_W),
-          y: Styles.PLAYER_BTN_Y + Styles.PLAYER_BTN_OY * (playerButton.left ? startYLeft++ : startYRight++),
-          normal_src: playerButton.src,
-          press_src: playerButton.src,
-          click_func: () => {
-            vm.state.action = playerButton.action
-            if (playerButton.action === 'pause') {
-              playerButton.action = 'play'
-            } else if (playerButton.action === 'play') {
-              playerButton.action = 'pause'
-            }
+        const x = playerButton.left ? Styles.PLAYER_BTN_X : (SCREEN_WIDTH - Styles.PLAYER_BTN_X - Styles.PLAYER_BTN_W)
+        const y = Styles.PLAYER_BTN_Y + Styles.PLAYER_BTN_OY * (playerButton.left ? startYLeft++ : startYRight++)
 
-            if (isService) {
-              vm.permissionRequest()
-            } else {
-              playerHelper.doAction(this.getServiceParam())
-            }
+        const bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+          ...Styles.PLAYER_BTN,
+          x,
+          y,
+          w: ICON_SIZE_MEDIUM,
+          h: ICON_SIZE_MEDIUM,
+          color: MAIN_COLOR
+        })
+
+        bg.setProperty(hmUI.prop.VISIBLE, false)
+        hmUI.createWidget(hmUI.widget.IMG, {
+          ...Styles.PLAYER_BTN,
+          x,
+          y,
+          w: ICON_SIZE_MEDIUM,
+          h: ICON_SIZE_MEDIUM,
+          src: playerButton.src
+        }).addEventListener(hmUI.event.CLICK_UP, () => {
+          bg.setProperty(hmUI.prop.VISIBLE, true)
+          setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), 200)
+          vm.state.action = playerButton.action
+          if (playerButton.action === 'pause') {
+            playerButton.action = 'play'
+          } else if (playerButton.action === 'play') {
+            playerButton.action = 'pause'
+          }
+
+          if (isService) {
+            vm.permissionRequest()
+          } else {
+            playerHelper.doAction(this.getServiceParam(), this)
           }
         })
       })
 
+      console.log('action=' + this.state.action)
       if (isService) {
         this.permissionRequest()
       } else {
+        playerHelper.reset()
         playerHelper.doAction(this.getServiceParam(), this)
       }
     },

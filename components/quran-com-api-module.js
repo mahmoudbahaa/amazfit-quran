@@ -1,9 +1,10 @@
 import { log } from '@zos/utils'
+import { getFileName } from '../libs/utils'
 
 const logger = log.getLogger('quran-com-api')
 const baseUrl = 'https://api.quran.com/api/v4/'
 export const quranComApiModule = {
-  get (caller, onSucess, onError, url, resourceName, attrsToDelete = undefined) {
+  get (caller, onSuccess, onError, url, resourceName, attrsToDelete = undefined) {
     caller.httpRequest({
       method: 'get',
       url
@@ -24,7 +25,7 @@ export const quranComApiModule = {
         })
       }
 
-      onSucess(result.body[resourceName])
+      onSuccess(result.body[resourceName])
     }).catch((error) => {
       logger.error('error=>', error)
       if (onError) {
@@ -33,10 +34,10 @@ export const quranComApiModule = {
     })
   },
 
-  getChapters (caller, surahLangIsoCode, onSucess, onError) {
+  getChapters (caller, surahLangIsoCode, onSuccess, onError) {
     this.get(
       caller,
-      onSucess,
+      onSuccess,
       onError,
       `${baseUrl}chapters?language=${surahLangIsoCode}`,
       'chapters',
@@ -44,26 +45,68 @@ export const quranComApiModule = {
     )
   },
 
-  getVersesAudioPaths (caller, recitationId, onSucess, onError) {
+  getVersesAudioPaths (caller, recitationId, onSuccess, onError) {
     const url = `${baseUrl}quran/recitations/${recitationId}?chapter_number=1`
     this.get(
       caller,
-      onSucess,
+      onSuccess,
       onError,
       url,
       'audio_files'
     )
   },
 
-  getVerseText (caller, verse, onSucess, onError) {
+  getVerseText (caller, verse, onSuccess, onError) {
     // audio=${recitationId}}&
     const url = `${baseUrl}verses/by_key/${verse}?fields=text_imlaei`
     this.get(
       caller,
-      onSucess,
+      onSuccess,
       onError,
       url,
       'verse'
     )
+  },
+
+  _receiveVerse(caller, path, onSuccess, onError) {
+    caller.receiveFile(path, {
+      type: 'mp3',
+      name: path
+    }).then((result) => {
+      onSuccess(result)
+    }).catch((error) => {
+      logger.error('error=>' + JSON.stringify(error))
+      if (onError) {
+        onError(error)
+      }
+    })
+  },
+
+  downloadVerse (caller, relativePath, verse, onSuccess, onError) {
+    const fileName = getFileName(verse)
+    const url = `https://verses.quran.com/${relativePath}${fileName}`
+    const path = `data://download/${fileName}`
+
+    logger.log('download from=>' + url)
+    // this._receiveVerse(caller, path, onSuccess, () => {
+      caller.download(url, {
+        headers: {},
+        timeout: 600000,
+        transfer: {
+          path,
+          opts: {
+            type: 'mp3',
+            name: path
+          }
+        }
+      }).then((result) => {
+        onSuccess(result)
+      }).catch((error) => {
+        logger.error('error=>' + JSON.stringify(error))
+        if (onError) {
+          onError(error)
+        }
+      })
+    // })
   }
 }

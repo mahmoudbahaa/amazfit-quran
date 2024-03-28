@@ -1,39 +1,22 @@
 /* global getApp, Page */
-import hmUI from '@zos/ui'
 import { log } from '@zos/utils'
-import { push } from '@zos/router'
-import { BasePage } from '@zeppos/zml/base-page'
+import { scrollTo } from '@zos/page'
+import { BasePage } from '../libs/zml/dist/zml-page'
 import { setWakeUpRelaunch } from '@zos/display'
-import { nextChapterEnd, nextChapterStart } from '../libs/utils.js'
 import {
-  getChapter,
   getLang,
   setChapters,
   setLang,
-  setRecitation,
-  useSimpleSurahName
+  setRecitation
 } from '../libs/storage/localStorage.js'
 import { createLoadingWidget, deleteLoadingWidget } from '../components/loading-anim'
-import { _, DEVICE_LANG, isRtlLang } from '../libs/i18n/lang'
-import { JUZS } from './test-data/juzs'
-import { CHAPTERS } from './test-data/chapters'
-import { NUM_CHAPTERS, NUM_VERSES } from '../libs/constants'
+import { DEVICE_LANG, isRtlLang } from '../libs/i18n/lang'
+import { NUM_PAGES } from '../libs/constants'
 import { quranComApiModule } from '../components/quran-com-api-module'
-import {
-  MAIN_COLOR,
-  MAIN_COLOR_TXT,
-  SECONDARY_COLOR,
-  SECONDARY_COLOR_TXT,
-  WARNING_COLOR,
-  WARNING_COLOR_TXT
-} from '../libs/mmk/UiParams'
-import { apiCall } from '../components/api-caller'
-import * as Styles from './style.r.layout.js'
 import { ListScreen } from '../libs/mmk/ListScreen'
+import { addNextPreviousButton, getRows } from '../libs/chaptersListRows'
 
 const logger = log.getLogger('select.page')
-const thisPage = 'page/select'
-const playerPage = 'page/player'
 let rtl
 
 Page(
@@ -55,14 +38,13 @@ Page(
       console.log(JSON.stringify(lastLangCode))
       const { lang } = settings
       console.log(JSON.stringify(settings))
-      const langCode = lang ? lang.isoCode : DEVICE_LANG()
+      const langCode = lang ? lang.split(',')[1] : DEVICE_LANG()
       console.log(JSON.stringify(langCode))
       getApp()._options.globalData.langCode = langCode
       rtl = isRtlLang(langCode)
       const caller = this
       if (lastLangCode !== langCode) {
         quranComApiModule.getChapters(this, langCode, (theChapters) => {
-          this.state.chapters = theChapters
           setLang(langCode)
           setChapters(theChapters)
           caller.createWidgets()
@@ -72,33 +54,29 @@ Page(
       }
     },
 
-    onCall (result) {
-      const { req } = result
-
-      if (!result.success || req.params.page !== thisPage) return
-
-      switch (req.method) {
-        case 'getSettings': {
-          if (getApp()._options.globalData.settings) break
-          getApp()._options.globalData.settings = result.settings
+    getSideAppSettings () {
+      this.getSettings(['lang', 'recitation'])
+        .then(settings => {
+          settings.recitation = settings.recitation || 'Mishari Rashid al-`Afasy,7'
+          getApp()._options.globalData.settings = settings
           this.onSettings()
-          break
-        }
-      }
+        }).catch(error => {
+          logger.log('Error while retrieving settings ' + error)
+        })
     },
 
     createWidgets () {
-      new ChaptersScreen().start(0, nextChapterEnd(0))
-      deleteLoadingWidget()
+      console.log('Inside Create Widgets')
+      new ChaptersScreen(getRows()).start()
     },
 
     build () {
-      createLoadingWidget(hmUI)
+      createLoadingWidget()
 
       if (getApp()._options.globalData.settings) {
-        setTimeout(this.onSettings, 200)
+        setTimeout(() => this.onSettings(), 50)
       } else {
-        apiCall('getSettings', this, thisPage)
+        this.getSideAppSettings()
       }
 
       // setRecitation('Mishari Rashid al-`Afasy,7,0')
@@ -108,144 +86,52 @@ Page(
   })
 )
 
-let lastSurahNumber = -1
-
 class ChaptersScreen extends ListScreen {
-  constructor () {
+  constructor (rows) {
     super(rtl)
-  }
-
-  start (start, end) {
-    render(this, start, end)
-  }
-}
-
-function render (screen, start, end) {
-  let listIndex = 0
-
-  if (start > 0) {
-    addNextPreviousButton(screen, 'Previous', nextChapterStart(start), start, listIndex++)
-  }
-
-  const ar = getApp()._options.globalData.settings.lang.isoCode === 'ar'
-  const useSimpleNames = useSimpleSurahName() === 'true'
-  const nameKey = ar ? 'name_arabic' : useSimpleNames ? 'name_simple' : 'name_complex'
-
-  let verseMapping
-  let surahNumber
-  let chapter
-  let name
-  let translation
-  JUZS.slice(start, end).forEach((juz) => {
-    addJuzRow(screen, juz.juz_number, listIndex++)
-
-    verseMapping = juz.verse_mapping
-    for (surahNumber in verseMapping) {
-      if (lastSurahNumber === surahNumber) continue
-
-      chapter = getChapter(surahNumber - 1)
-      name = chapter[nameKey]
-      translation = ar ? '' : chapter.translated_name.name
-      addChapterRow(screen, surahNumber, name, translation, listIndex++)
-      lastSurahNumber = surahNumber
+    this.rows = rows
+    const numPerPage = Math.floor(this.rows.length / NUM_PAGES)
+    this.boundaries = Array.from({ length: NUM_PAGES + 1 })
+    this.boundaries[0] = 0
+    this.boundaries[NUM_PAGES] = this.rows.length
+    for (let i = 1; i < NUM_PAGES; i++) {
+      this.boundaries[i] = i * numPerPage
     }
-  })
-
-  if (end < NUM_CHAPTERS) {
-    addNextPreviousButton(screen, 'Next', end, nextChapterEnd(end), listIndex++)
   }
 
-  screen.finalize(listIndex)
-}
-
-function addNextPreviousButton (listScreen, label, newStart, newEnd, listIndex) {
-  listScreen.replaceOrCreateRow({
-    ...Styles.ROW_STYLE,
-    text: _(label),
-    rtl,
-    color: WARNING_COLOR_TXT,
-    card: {
-      ...Styles.ROW_STYLE.card,
-      color: 0x123456,
-      callback: () => {
-        render(listScreen, newStart, newEnd)
-      }
-    },
-    iconText: rtl ? label === 'Next' ? '←' : '→' : label === 'Next' ? '→' : '←',
-    iconColor: WARNING_COLOR,
-    alignH: rtl ? hmUI.align.RIGHT : hmUI.align.LEFT
-  }, listIndex)
-}
-
-function addJuzRow (listScreen, juzNumber, listIndex) {
-  listScreen.replaceOrCreateRow({
-    ...Styles.ROW_STYLE,
-    text: `${_('Juz\'')} ${_(`${juzNumber}`)}`,
-    color: MAIN_COLOR_TXT,
-    rtl,
-    card: {
-      ...Styles.ROW_STYLE.card,
-      callback: () => {
-        getApp()._options.globalData.verses = getJuzVerses(juzNumber)
-        push({
-          url: playerPage
-        })
-      }
-    },
-    iconColor: MAIN_COLOR,
-    alignH: rtl ? hmUI.align.RIGHT : hmUI.align.LEFT
-  }, listIndex)
-}
-
-function addChapterRow (listScreen, surahNumber, name, translation, listIndex) {
-  listScreen.replaceOrCreateRow({
-    ...Styles.ROW_STYLE,
-    text: `${_('Surah')} ${name}`,
-    color: SECONDARY_COLOR_TXT,
-    rtl,
-    card: {
-      ...Styles.ROW_STYLE.card,
-      callback: () => {
-        getApp()._options.globalData.verses = getChapterVerses(surahNumber)
-        push({
-          url: playerPage
-        })
-      }
-    },
-
-    description: translation,
-    iconText: _(surahNumber),
-    iconColor: SECONDARY_COLOR,
-    alignH: rtl ? hmUI.align.RIGHT : hmUI.align.LEFT
-  }, listIndex)
-}
-
-function getJuzVerses (juzNumber) {
-  const verseMapping = JUZS[juzNumber - 1].verse_mapping
-  const verses = []
-  const surahes = []
-  for (const surah in verseMapping) {
-    surahes.push(parseInt(surah))
+  start () {
+    this.render()
   }
 
-  surahes.sort()
-  surahes.forEach((surah) => {
-    const verseSingleMapping = verseMapping[surah + '']
-    const start = verseSingleMapping.split('-')[0]
-    const end = verseSingleMapping.split('-')[1]
-    for (let i = start; i <= end; i++) {
-      verses.push(surah + ':' + i)
+  render () {
+    const pageNumber = getApp()._options.globalData.pageNumber
+    const start = this.boundaries[pageNumber]
+    const end = this.boundaries[pageNumber + 1]
+    let pos = 0
+    if (start > 0) {
+      const prev = addNextPreviousButton('Previous', pageNumber - 1, rtl)
+      this.replaceOrCreateRow(prev, pos++)
     }
-  })
 
-  return verses
-}
-
-function getChapterVerses (surahNumber) {
-  const verses = []
-  for (let i = 1; i <= NUM_VERSES[surahNumber - 1]; i++) {
-    verses.push(`${surahNumber}:${i}`)
+    this.renderRow(start, pos, end, pageNumber)
   }
 
-  return verses
+  renderRow (idx, pos, end, pageNumber) {
+    if (idx >= end) {
+      if (end < this.rows.length) {
+        const next = addNextPreviousButton('Next', pageNumber + 1, rtl)
+        this.replaceOrCreateRow(next, pos++)
+      }
+
+      this.finalize(pos)
+      scrollTo({
+        y: getApp()._options.globalData.scrollTop
+      })
+      deleteLoadingWidget()
+      return
+    }
+
+    this.replaceOrCreateRow(this.rows[idx], pos)
+    setTimeout(() => this.renderRow(idx + 1, pos + 1, end, pageNumber), 1)
+  }
 }
