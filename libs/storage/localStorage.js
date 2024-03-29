@@ -13,6 +13,10 @@ function getValue (key) {
   return flash().getKey(key)
 }
 
+function hasKey (key) {
+  return flash().hasKey(key)
+}
+
 export function getChapter (chapter) {
   return getValue('chapter' + chapter)
 }
@@ -53,6 +57,10 @@ export function setRecitation (value) {
 
 export function getVerseText (verse) {
   return getValue(`v${verse}`)
+}
+
+export function hasVerseText (verse) {
+  return hasKey(`v${verse}`)
 }
 
 export function setVerseText (verse, text) {

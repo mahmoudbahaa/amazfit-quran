@@ -8,7 +8,7 @@ export const NUM_VERSES = [7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 1
 
 export const PLAYER_BUFFER_SIZE = 4
 export const MAX_WORDS_PER_PAGE = 30
-export const MAX_ERROR_RETRIES = 5
+export const MAX_ERROR_RETRIES = 10
 export const ERROR_RETRY_AFTER = 5000
 export const NUM_PAGES = 4 // Use 4 or more (3 or less cause memory issues)
 

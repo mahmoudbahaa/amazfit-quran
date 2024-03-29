@@ -1,7 +1,3 @@
-import { log } from '@zos/utils'
-import { getFileName } from '../libs/utils'
-
-const logger = log.getLogger('quran-com-api')
 const baseUrl = 'https://api.quran.com/api/v4/'
 export const quranComApiModule = {
   get (caller, onSuccess, onError, url, resourceName, attrsToDelete = undefined) {
@@ -10,7 +6,7 @@ export const quranComApiModule = {
       url
     }).then((result) => {
       if (result.status >= 300 && result.status < 200) {
-        logger.log(`Error${result.statusText}`)
+        console.log(`Error${result.statusText}`)
         if (onError) {
           onError()
         }
@@ -35,11 +31,49 @@ export const quranComApiModule = {
 
       onSuccess(result.body[resourceName])
     }).catch((error) => {
-      logger.error('error=>', error)
+      console.log('error=>', error)
       if (onError) {
         onError(error)
       }
     })
+  },
+
+  async getByService (service, onSuccess, onError, url, resourceName, attrsToDelete = undefined) {
+    const result = await service.fetch({
+      method: 'get',
+      url
+    }).catch((error) => {
+      service.log('error=>', error)
+      if (onError) {
+        onError(error)
+      }
+    })
+
+    if (result.status >= 300 && result.status < 200) {
+      service.log(`Error${result.statusText}`)
+      if (onError) {
+        onError()
+      }
+      return
+    }
+
+    if (attrsToDelete !== undefined) {
+      result.body[resourceName].forEach((resource) => {
+        attrsToDelete.forEach((attr) => {
+          delete resource[attr]
+        })
+      })
+    }
+
+    if (!result.body[resourceName]) {
+      service.log('OOPS')
+      service.log(url)
+      service.log(JSON.stringify(result.body))
+      service.log(result.status)
+      service.log(result.statusText)
+    }
+
+    onSuccess(result.body[resourceName])
   },
 
   getChapters (caller, surahLangIsoCode, onSuccess, onError) {
@@ -53,9 +87,10 @@ export const quranComApiModule = {
     )
   },
 
-  getVersesAudioPaths (caller, recitationId, onSuccess, onError) {
+  async getVersesAudioPaths (caller, recitationId, onSuccess, onError) {
     const url = `${baseUrl}quran/recitations/${recitationId}?chapter_number=1`
-    this.get(
+    caller.log(url)
+    await this.getByService(
       caller,
       onSuccess,
       onError,
@@ -64,10 +99,9 @@ export const quranComApiModule = {
     )
   },
 
-  getVerseText (caller, verse, recitationId, onSuccess, onError) {
-    // audio=${recitationId}}&
+  async getVerseText (caller, verse, recitationId, onSuccess, onError) {
     const url = `${baseUrl}verses/by_key/${verse}?audio=${recitationId}&fields=text_imlaei`
-    this.get(
+    await this.getByService(
       caller,
       onSuccess,
       onError,
@@ -76,46 +110,57 @@ export const quranComApiModule = {
     )
   },
 
-  _receiveVerse (caller, path, onSuccess, onError) {
-    caller.receiveFile(path, {
+  transferVerse (caller, verse, onSuccess, onError) {
+    const fileName = this.getFileName(verse)
+    const path = `data://download/${fileName}`
+    const task = caller.sendFile(path, {
       type: 'mp3',
-      name: path
-    }).then((result) => {
-      onSuccess(result)
-    }).catch((error) => {
-      logger.error('error=>' + JSON.stringify(error))
-      if (onError) {
-        onError(error)
+      fileName: path
+    })
+
+    let sendResult = true
+    task.on('change', (e) => {
+      if (e.data.readyState === 'transferred') {
+        if (sendResult) {
+          sendResult = false
+          onSuccess({ status: 'success' })
+        }
+      } else if (e.data.readyState === 'error') {
+        if (sendResult) {
+          sendResult = false
+          onError({ status: 'error' })
+        }
       }
     })
   },
 
-  downloadVerse (caller, relativePath, verse, onSuccess, onError) {
-    const fileName = getFileName(verse)
-    const url = `https://verses.quran.com/${relativePath}${fileName}`
-    const path = `data://download/${fileName}`
+  getFileName (verse) {
+    const surahNumber = verse.split(':')[0]
+    const verseNumber = verse.split(':')[1]
+    return `${surahNumber.padStart(3, '0') + verseNumber.padStart(3, '0')}.mp3`
+  },
 
-    logger.log('download from=>' + url)
-    // this._receiveVerse(caller, path, onSuccess, () => {
-    caller.download(url, {
+  downloadVerse (caller, relativePath, verse, onSuccess, onError) {
+    const fileName = this.getFileName(verse)
+    const url = `https://verses.quran.com/${relativePath}${fileName}`
+
+    caller.log('download from=>' + url)
+    const task = caller.download(url, {
       headers: {},
-      timeout: 600000,
-      transfer: {
-        path,
-        opts: {
-          type: 'mp3',
-          name: path,
-          timeout: 600000
-        }
-      }
-    }).then((result) => {
-      onSuccess(result)
-    }).catch((error) => {
-      logger.error('error=>' + JSON.stringify(error))
-      if (onError) {
-        onError(error)
-      }
+      timeout: 600000
     })
-    // })
+
+    if (!task) {
+      onError({ message: 'download fail' })
+      return
+    }
+
+    task.onSuccess = (data) => {
+      onSuccess({ status: 'success' })
+    }
+
+    task.onFail = (data) => {
+      onError({ message: 'download fail' })
+    }
   }
 }

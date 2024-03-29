@@ -2,17 +2,13 @@
 import { log } from '@zos/utils'
 import { create, id } from '@zos/media'
 import * as appServiceMgr from '@zos/app-service'
-import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery, parseVerse } from '../libs/utils'
-import { getRecitation, getVerseText, setVerseInfo, setVerseText } from '../libs/storage/localStorage'
-import { quranComApiModule } from './quran-com-api-module'
-import { ERROR_RETRY_AFTER, MAX_ERROR_RETRIES, NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
-import { showToast } from '@zos/interaction'
-import { exit } from '@zos/router'
+import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
+import { getRecitation, hasVerseText } from '../libs/storage/localStorage'
+import { NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
 
 const VOLUME_INCREMENT = 10
 const thisService = 'app-service/player_service'
 const logger = log.getLogger('player.service')
-const TIME_OUT_DURATION = 200
 
 export const START = 'start'
 export const EXIT = 'exit'
@@ -26,16 +22,12 @@ export const INCREASE_VOLUME = 'inc-vol'
 export const PLAYER_TYPE_JUZ = 'JUZ'
 export const PLAYER_TYPE_CHAPTER = 'CHAPTER'
 export class QuranPlayer {
-  #player
   #verses
-  #curDownVerse
+  #player
   #curPlayVerse
-  #exists
+  #curDownVerse
   #onHold
   #relativePath
-  #downloading
-  #stoppingVerseDownload
-  #stoppedVerseDownload
   #basePage
   #type
   #number
@@ -93,6 +85,14 @@ export class QuranPlayer {
     }
   }
 
+  updateStatus (curDownVerse) {
+    this.#curDownVerse = curDownVerse
+    getApp()._options.globalData.curDownloadedVerse = this.#verses[curDownVerse]
+    if (curDownVerse - this.#curPlayVerse > PLAYER_BUFFER_SIZE) {
+      this.#playVerse()
+    }
+  }
+
   #doExit (stopService = true) {
     logger.log('Stop Player Service')
     if (this.#player !== undefined) {
@@ -100,7 +100,10 @@ export class QuranPlayer {
       this.#player.release()
     }
 
-    this.#stoppingVerseDownload = true
+    this.#basePage.request({
+      method: 'download.stop',
+      params: ''
+    })
 
     if (stopService) {
       appServiceMgr.stop({
@@ -113,18 +116,14 @@ export class QuranPlayer {
     getApp()._options.globalData.curVerse = undefined
     getApp()._options.globalData.curDownloadedVerse = undefined
 
-    this.#curDownVerse = -1
     this.#curPlayVerse = -1
-    this.#exists = undefined
+    this.#curDownVerse = -1
     this.#onHold = true
-    this.#stoppingVerseDownload = false
     this.#recitation = getRecitation().split(',')[1]
 
     if (partialReset) return
 
     this.#relativePath = undefined
-    this.#downloading = false
-    this.#stoppedVerseDownload = true
   }
 
   #playSurahOrJuz (number) {
@@ -147,12 +146,19 @@ export class QuranPlayer {
       this.#player.stop()
     }
 
-    this.#exists = this.#verses.map((verse) => checkVerseExists(verse))
+    const audioExists = this.#verses.map((verse) => checkVerseExists(verse))
+    const textExists = this.#verses.map((verse) => hasVerseText(verse))
+    const recitation = getRecitation().split(',')[1]
 
-    if (this.#stoppedVerseDownload) {
-      this.#stoppedVerseDownload = false
-      this.#downloadVerses()
-    }
+    this.#basePage.request({
+      method: 'download.ayas',
+      params: {
+        verses: this.#verses,
+        audioExists,
+        textExists,
+        recitation
+      }
+    })
   }
 
   #getFileName (verseIndex) {
@@ -171,9 +177,11 @@ export class QuranPlayer {
       } else {
         this.#doExit(false)
       }
+
+      return
     }
 
-    if (this.#curDownVerse <= this.#curPlayVerse) {
+    if (this.#curPlayVerse > this.#curDownVerse) {
       this.#curPlayVerse--
       this.#onHold = true
       return
@@ -189,115 +197,22 @@ export class QuranPlayer {
           getApp()._options.globalData.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
-          console.log(`=== prepare fail ===${JSON.stringify(result)}`)
+          logger.log(`=== prepare fail ===${JSON.stringify(result)}`)
           player.release()
         }
       })
 
-      const service = this
       player.addEventListener(player.event.COMPLETE, (result) => {
         that.#onHold = true
-        service.#playVerse()
+        that.#playVerse()
       })
 
       player.setSource(player.source.FILE, { file: `data://download/${this.#getFileName(this.#curPlayVerse)}` })
       player.prepare()
     } else {
-      console.log('status=' + player.getStatus())
       player.stop()
       player.setSource(player.source.FILE, { file: `data://download/${this.#getFileName(this.#curPlayVerse)}` })
       player.prepare()
     }
-  }
-
-  #downloadVersesAudio () {
-    if (this.#exists[this.#curDownVerse]) {
-      setTimeout(() => this.#downloadVerseText(), TIME_OUT_DURATION)
-      return
-    }
-
-    const verse = this.#verses[this.#curDownVerse]
-    logger.log('downloading verse=' + verse)
-    quranComApiModule.downloadVerse(
-      this.#basePage,
-      this.#relativePath,
-      verse,
-      () => {
-        getApp()._options.globalData.errorCount = 0
-        setTimeout(() => this.#downloadVerseText(), TIME_OUT_DURATION)
-      },
-      event => {
-        console.log('error=>' + JSON.stringify(event))
-        getApp()._options.globalData.errorCount++
-        if (getApp()._options.globalData.errorCount <= MAX_ERROR_RETRIES) {
-          setTimeout(() => this.#downloadVersesAudio(), ERROR_RETRY_AFTER)
-        } else {
-          showToast({
-            content: 'Too many errors. App will exit'
-          })
-
-          setTimeout(() => exit(), 5000)
-        }
-      }
-    )
-  }
-
-  #downloadVerseText () {
-    if (this.#stoppingVerseDownload) {
-      this.#stoppingVerseDownload = false
-      this.#stoppedVerseDownload = true
-      return
-    }
-
-    this.#curDownVerse++
-    if ((this.#curDownVerse - this.#curPlayVerse) >= PLAYER_BUFFER_SIZE ||
-        this.#curDownVerse === this.#verses.length) {
-      this.#playVerse()
-    }
-
-    if (this.#curDownVerse === this.#verses.length) {
-      this.#stoppedVerseDownload = true
-      return
-    }
-
-    const verse = this.#verses[this.#curDownVerse]
-    getApp()._options.globalData.curDownloadedVerse = verse
-    const text = getVerseText(verse)
-    logger.log('text=' + text)
-    if (text) {
-      setTimeout(() => this.#downloadVersesAudio(), TIME_OUT_DURATION)
-      return
-    }
-
-    console.log('Downloading text for verse: ' + verse)
-    const that = this
-    quranComApiModule.getVerseText(
-      this.#basePage,
-      verse,
-      this.#recitation,
-      (verseText) => {
-        const [text, mapping] = parseVerse(verseText)
-        logger.log('text=' + text)
-        setVerseText(verse, text)
-        setVerseInfo(verse, mapping)
-        setTimeout(() => that.#downloadVersesAudio(), TIME_OUT_DURATION)
-      }
-    )
-  }
-
-  #getVersesAudioPaths () {
-    const that = this
-    quranComApiModule.getVersesAudioPaths(
-      this.#basePage,
-      this.#recitation,
-      (audioFiles) => {
-        const { url } = audioFiles[0]
-        that.#relativePath = url.substring(0, url.lastIndexOf('/') + 1)
-        setTimeout(() => that.#downloadVerseText(), TIME_OUT_DURATION)
-      })
-  }
-
-  #downloadVerses () {
-    setTimeout(() => this.#getVersesAudioPaths(), TIME_OUT_DURATION)
   }
 }

@@ -4,7 +4,6 @@ import { setWakeUpRelaunch } from '@zos/display'
 import { BaseAboutScreen } from '../libs/mmk/BaseAboutScreen'
 import { _, DEVICE_LANG, isRtlLang } from '../libs/i18n/lang'
 import { SCREEN_MARGIN_Y } from '../libs/mmk/UiParams'
-import { showToast } from '@zos/interaction'
 
 const logger = log.getLogger('about.page')
 const majorVersion = 0

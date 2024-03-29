@@ -1,5 +1,7 @@
 /* global App */
-import { BaseApp } from './libs/zml/dist/zml-app'
+// import { BaseApp } from './libs/zml/dist/zml-app'
+import { BaseApp } from '@zeppos/zml/base-app'
+
 import { Time } from '@zos/sensor'
 
 App(

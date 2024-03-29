@@ -23,23 +23,6 @@ export function getChapterVerses (surahNumber) {
   return verses
 }
 
-export function parseVerse (verseText) {
-  const text = verseText.text_imlaei
-  let normalizedText = text
-  STOP_LABELS.forEach((stopLabel) => {
-    normalizedText = normalizedText.replaceAll(stopLabel, '')
-  })
-  const words = normalizedText.replaceAll('  ', ' ').split(' ')
-  const mapping = [0]
-
-  if (words.length < MAX_WORDS_PER_PAGE) return [text, mapping]
-
-  const segments = verseText.audio.segments
-  for (let i = MAX_WORDS_PER_PAGE; i < words.length; i += MAX_WORDS_PER_PAGE) {
-    mapping.push(segments[i][2])
-  }
-  return [normalizedText, mapping]
-}
 export function getJuzVerses (juzNumber) {
   const verseMapping = JUZS[juzNumber - 1].verse_mapping
   const verses = []
@@ -84,9 +67,9 @@ export function getFileName (verse) {
 
 export function checkVerseExists (verse) {
   const fileName = getFileName(verse)
-  return statSync({
+  return !!(statSync({
     path: `download/${fileName}`
-  })
+  }))
 }
 
 export function humanizeTime (total) {

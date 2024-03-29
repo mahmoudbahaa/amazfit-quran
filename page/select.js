@@ -1,6 +1,7 @@
 /* global getApp, Page */
 import { log } from '@zos/utils'
-import { BasePage } from '../libs/zml/dist/zml-page'
+// import { BasePage } from '../libs/zml/dist/zml-page'
+import { BasePage } from '@zeppos/zml/base-page'
 import { setWakeUpRelaunch } from '@zos/display'
 import {
   getLang,
@@ -50,14 +51,18 @@ Page(
     },
 
     getSideAppSettings () {
-      this.getSettings(['lang', 'recitation'])
-        .then(settings => {
-          settings.recitation = settings.recitation || 'Mishari Rashid al-`Afasy,7'
-          getApp()._options.globalData.settings = settings
-          this.onSettings()
-        }).catch(error => {
-          logger.log('Error while retrieving settings ' + error)
-        })
+      this.request({
+        method: 'get.settings',
+        params: ['lang', 'recitation']
+      }).then(result => {
+        console.log(JSON.stringify(result))
+        const settings = result.data
+        settings.recitation = settings.recitation || 'Mishari Rashid al-`Afasy,7'
+        getApp()._options.globalData.settings = settings
+        this.onSettings()
+      }).catch(error => {
+        logger.log('Error while retrieving settings ' + error)
+      })
     },
 
     createWidgets () {

@@ -3,7 +3,8 @@ import hmUI from '@zos/ui'
 import { log as Logger, px } from '@zos/utils'
 import { setWakeUpRelaunch } from '@zos/display'
 import { replace } from '@zos/router'
-import { BasePage } from '../libs/zml/dist/zml-page'
+// import { BasePage } from '../libs/zml/dist/zml-page'
+import { BasePage } from '@zeppos/zml/base-page'
 import * as Styles from './style.r.layout.js'
 import { parseQuery } from '../libs/utils.js'
 import {
@@ -18,7 +19,7 @@ import {
   INCREASE_VOLUME,
   QuranPlayer
 } from '../components/quranPlayer'
-import { getVerseInfo, getVerseText } from '../libs/storage/localStorage.js'
+import { getVerseInfo, getVerseText, setVerseInfo, setVerseText } from '../libs/storage/localStorage.js'
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { MAX_WORDS_PER_PAGE, NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
@@ -45,6 +46,17 @@ Page(
       const params = parseQuery(paramsString)
       this.state.number = parseInt(params.number)
       this.state.type = params.type
+    },
+
+    onCall (data) {
+      if (data.curDownVerse) {
+        if (this.state.player) {
+          this.state.player.updateStatus(data.curDownVerse)
+        }
+      } else if (data.verse) {
+        setVerseText(data.verse, data.verseText)
+        setVerseInfo(data.verse, data.verseInfo)
+      }
     },
 
     getServiceParam (action) {
