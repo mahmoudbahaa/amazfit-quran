@@ -1,45 +1,20 @@
-import { mkdirSync, readFileSync, writeFileSync } from '@zos/fs'
+import { EasyFlashStorage } from './easy-storage'
+let _flash
+function flash () {
+  if (!_flash) _flash = new EasyFlashStorage()
 
-function normalizeKey (key) {
-  return key.replace(/[^a-zA-Z0-9]/g, '_')
+  return _flash
+}
+function setValue (key, value) {
+  flash().setKey(key, value)
 }
 
-function setSmallValue (key, value) {
-  return setLargeValue(key, value)
-}
-
-function getSmallValue (key, defaultVal) {
-  return getLargeValue(key, defaultVal)
-}
-
-function setLargeValue (key, value) {
-  key = normalizeKey(key)
-  mkdirSync({
-    path: 'config'
-  })
-
-  writeFileSync({
-    path: 'config/' + key,
-    data: JSON.stringify(value),
-    options: {
-      encoding: 'utf8'
-    }
-  })
-}
-
-function getLargeValue (key, defaultVal) {
-  key = normalizeKey(key)
-  const data = readFileSync({
-    path: 'config/' + key,
-    options: {
-      encoding: 'utf8'
-    }
-  })
-  return data === undefined ? defaultVal : JSON.parse(data)
+function getValue (key) {
+  return flash().getKey(key)
 }
 
 export function getChapter (chapter) {
-  return getLargeValue('chapter' + chapter)
+  return getValue('chapter' + chapter)
 }
 
 export function setChapters (chapters) {
@@ -49,37 +24,45 @@ export function setChapters (chapters) {
 }
 
 function setChapter (chapter, value) {
-  setLargeValue('chapter' + chapter, value)
+  setValue('chapter' + chapter, value)
 }
 
 export function getLang () {
-  return getSmallValue('lang')
+  return getValue('lang')
 }
 
 export function setLang (lang) {
-  setSmallValue('lang', lang)
+  setValue('lang', lang)
 }
 
 export function useSimpleSurahName () {
-  return getSmallValue('useSimpleSurahName')
+  return getValue('useSimpleSurahName')
 }
 
 export function setUseSimpleSurahName (value) {
-  setSmallValue('useSimpleSurahName', value)
+  setValue('useSimpleSurahName', value)
 }
 
 export function getRecitation () {
-  return getSmallValue('recitation')
+  return getValue('recitation')
 }
 
 export function setRecitation (value) {
-  setSmallValue('recitation', value)
+  setValue('recitation', value)
 }
 
 export function getVerseText (verse) {
-  return getLargeValue(`v${verse}`)
+  return getValue(`v${verse}`)
 }
 
 export function setVerseText (verse, text) {
-  setLargeValue(`v${verse}`, text)
+  setValue(`v${verse}`, text)
+}
+
+export function getVerseInfo (verse) {
+  return getValue(`vi${verse}`)
+}
+
+export function setVerseInfo (verse, mapping) {
+  setValue(`vi${verse}`, mapping)
 }

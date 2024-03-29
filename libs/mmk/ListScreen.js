@@ -8,7 +8,6 @@ import {
   SCREEN_WIDTH
 } from './UiParams'
 import { RowEntry } from './ListScreenParts/RowEntry'
-import { getScrollTop } from '@zos/page'
 import * as Styles from '../../page/style.r.layout'
 
 let lastPosY = -1000

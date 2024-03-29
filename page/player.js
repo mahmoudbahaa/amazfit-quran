@@ -1,93 +1,59 @@
 /* global getApp, Page */
 import hmUI from '@zos/ui'
-import * as appService from '@zos/app-service'
 import { log as Logger, px } from '@zos/utils'
-import { queryPermission, requestPermission } from '@zos/app'
 import { setWakeUpRelaunch } from '@zos/display'
 import { replace } from '@zos/router'
 import { BasePage } from '../libs/zml/dist/zml-page'
 import * as Styles from './style.r.layout.js'
-import { checkVerseExists } from '../libs/utils.js'
-import { playerHelper as playerHelperFunc } from '../app-service/playerHelper'
-import { getVerseText } from '../libs/storage/localStorage.js'
+import { parseQuery } from '../libs/utils.js'
+import {
+  START,
+  EXIT,
+  PLAY,
+  PAUSE,
+  STOP,
+  PREVIOUS,
+  NEXT,
+  DECREASE_VOLUME,
+  INCREASE_VOLUME,
+  QuranPlayer
+} from '../components/quranPlayer'
+import { getVerseInfo, getVerseText } from '../libs/storage/localStorage.js'
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
-import { NUM_VERSES } from '../libs/constants'
+import { MAX_WORDS_PER_PAGE, NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
 
 const thisPage = 'page/player'
-const serviceFile = 'app-service/player_service'
 const logger = Logger.getLogger('player page')
-const permissions = ['device:os.bg_service']
-const isService = false
-let lastVerseInfo = -1000
-
-let playerHelper
-if (!isService) {
-  playerHelper = playerHelperFunc()
-}
+const lastVerseText = ''
 
 Page(
   BasePage({
     state: {
-      verses: undefined,
-      action: undefined,
-      interval: undefined
+      interval: undefined,
+      player: undefined,
+      type: undefined,
+      number: -1
     },
 
-    onInit (verses) {
+    onInit (paramsString) {
       setWakeUpRelaunch({
         relaunch: true
       })
 
-      this.state.action = 'start'
-      if (verses) {
-        this.state.verses = verses.split(',')
-      }
+      this.state.player = new QuranPlayer(this)
+      const params = parseQuery(paramsString)
+      this.state.number = parseInt(params.number)
+      this.state.type = params.type
     },
 
-    permissionRequest () {
-      const [result2] = queryPermission({
-        permissions
-      })
-
-      const that = this
-      if (result2 === 0) {
-        requestPermission({
-          permissions,
-          callback ([result2]) {
-            if (result2 === 2) {
-              that.startPlayerService()
-            }
-          }
-        })
-      } else if (result2 === 2) {
-        this.startPlayerService()
-      }
-    },
-
-    getServiceParam () {
+    getServiceParam (action) {
       let extraParams = ''
-      if (this.state.action === 'start') {
-        const verses = this.state.verses.join(',')
-        const exists = this.state.verses.map((verse) => checkVerseExists(verse) ? 't' : 'f')
-        extraParams = `&exists=${exists.join(',')}&verses=${verses}}`
+      if (action === START) {
+        extraParams = `&type=${this.state.type}&number=${this.state.number}`
       }
 
-      return `action=${this.state.action}${extraParams}`
-    },
-
-    startPlayerService () {
-      const param = this.getServiceParams()
-      appService.start({
-        url: serviceFile,
-        param
-      })
-    },
-
-    onCall (params) {
-      if (isService) return
-
-      playerHelper.onCall(params, this)
+      return `action=${action}${extraParams}`
     },
 
     getSurahLabel (verseInfo) {
@@ -105,11 +71,26 @@ Page(
       return `${_(verse.toString().padStart(3, '0'))}/${_(NUM_VERSES[chapter - 1].toString().padStart(3, '0'))}`
     },
 
+    getVerseText (verse, curTime) {
+      const text = getVerseText(verse)
+      const mapping = getVerseInfo(verse)
+      if (mapping.length <= 1) return text
+
+      const words = text.split(' ')
+      const elapsed = curTime - getApp()._options.globalData.verseStartTime
+
+      for (let i = 0; i < words.length; i += MAX_WORDS_PER_PAGE) {
+        const page = i / MAX_WORDS_PER_PAGE
+        if (elapsed > mapping[page] && elapsed < mapping[page + 1]) return words.slice(i, i + MAX_WORDS_PER_PAGE).join(' ')
+      }
+
+      const start = Math.floor(words.length / MAX_WORDS_PER_PAGE) * MAX_WORDS_PER_PAGE
+      return words.slice(start, words.length).join(' ')
+    },
+
     build () {
-      const verses = this.state.verses
       const surahInfo = hmUI.createWidget(hmUI.widget.TEXT, {
-        ...Styles.SURAH_PLAYER_LABEL,
-        text: this.getSurahLabel(verses[0])
+        ...Styles.SURAH_PLAYER_LABEL
       })
 
       // const verseBg =
@@ -128,38 +109,37 @@ Page(
         text: ''
       })
 
+      let lastVerse
       this.state.interval = setInterval(() => {
         let verse = getApp()._options.globalData.curVerse
         let verseTextText
         if (verse !== undefined) {
-          if (lastVerseInfo === verse) return
-          lastVerseInfo = verse
-
-          verseTextText = getVerseText(verse)
-        } else {
-          verse = getApp()._options.globalData.curDownloadedVerse
-          if (verse === undefined) {
-            verse = this.state.verses[0]
+          if (lastVerse !== verse) {
+            lastVerse = verse
           }
 
+          verseTextText = this.getVerseText(verse, getApp()._options.globalData.time.getTime())
+          if (lastVerseText.localeCompare(verseTextText) === 0) return
+        } else {
+          verse = getApp()._options.globalData.curDownloadedVerse
+          if (verse === undefined) return
           verseTextText = this.getDownloadLabel(verse)
         }
 
         surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
         verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
         verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
-      }, 200)
+      }, 20)
 
       const playerButtons = [
-        { src: 'back.png', action: 'previous', left: true },
-        { src: 'play-pause.png', action: 'pause', left: true },
-        { src: 'volume-dec.png', action: 'dec-vol', left: true },
-        { src: 'forward.png', action: 'next', left: false },
-        { src: 'stop.png', action: 'stop', left: false },
-        { src: 'volume-inc.png', action: 'inc-vol', left: false }
+        { src: 'back.png', action: PREVIOUS, left: true },
+        { src: 'play-pause.png', action: PAUSE, left: true },
+        { src: 'volume-dec.png', action: DECREASE_VOLUME, left: true },
+        { src: 'forward.png', action: NEXT, left: false },
+        { src: 'stop.png', action: STOP, left: false },
+        { src: 'volume-inc.png', action: INCREASE_VOLUME, left: false }
       ]
 
-      const vm = this
       let startYLeft = 0
       let startYRight = 0
       playerButtons.forEach((playerButton) => {
@@ -186,28 +166,16 @@ Page(
         }).addEventListener(hmUI.event.CLICK_UP, () => {
           bg.setProperty(hmUI.prop.VISIBLE, true)
           setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), 200)
-          vm.state.action = playerButton.action
-          if (playerButton.action === 'pause') {
-            playerButton.action = 'play'
-          } else if (playerButton.action === 'play') {
-            playerButton.action = 'pause'
-          }
-
-          if (isService) {
-            vm.permissionRequest()
-          } else {
-            playerHelper.doAction(this.getServiceParam(), this)
+          this.state.player.doAction(this.getServiceParam(playerButton.action))
+          if (playerButton.action === PAUSE) {
+            playerButton.action = PLAY
+          } else if (playerButton.action === PLAY) {
+            playerButton.action = PAUSE
           }
         })
       })
 
-      console.log('action=' + this.state.action)
-      if (isService) {
-        this.permissionRequest()
-      } else {
-        playerHelper.reset()
-        playerHelper.doAction(this.getServiceParam(), this)
-      }
+      this.state.player.doAction(this.getServiceParam(START))
     },
     onPause () {
       logger.log('page on pause invoke')
@@ -218,13 +186,7 @@ Page(
     },
     onDestroy () {
       logger.log('page on destroy invoke')
-
-      if (isService) {
-        this.state.action = 'exit'
-        this.permissionRequest(this)
-      } else {
-        playerHelper.doExit(false)
-      }
+      this.state.player.doAction(this.getServiceParam(EXIT))
 
       if (this.state.interval) {
         clearInterval(this.state.interval)

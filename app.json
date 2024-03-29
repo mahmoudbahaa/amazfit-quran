@@ -14,11 +14,8 @@
   },
   "permissions": [
     "data:os.device.info",
-    "device:os.bg_service",
     "device:os.ble",
-    "device:os.local_storage",
-    "device:os.alarm",
-    "device:os.notification"
+    "device:os.local_storage"
   ],
   "runtime": {
     "apiVersion": {
@@ -32,7 +29,9 @@
       "module": {
         "page": {
           "pages": [
-            "page/about"
+            "page/about",
+            "page/select",
+            "page/player"
           ]
         },
         "app-side": {
@@ -40,11 +39,6 @@
         },
         "setting": {
           "path": "setting/index"
-        },
-        "app-service": {
-          "services": [
-            "app-service/player_service"
-          ]
         }
       },
       "platforms": [

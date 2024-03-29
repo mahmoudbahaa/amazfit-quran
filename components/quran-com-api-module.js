@@ -25,6 +25,14 @@ export const quranComApiModule = {
         })
       }
 
+      if (!result.body[resourceName]) {
+        console.log('OOPS')
+        console.log(url)
+        console.log(JSON.stringify(result.body))
+        console.log(result.status)
+        console.log(result.statusText)
+      }
+
       onSuccess(result.body[resourceName])
     }).catch((error) => {
       logger.error('error=>', error)
@@ -56,9 +64,9 @@ export const quranComApiModule = {
     )
   },
 
-  getVerseText (caller, verse, onSuccess, onError) {
+  getVerseText (caller, verse, recitationId, onSuccess, onError) {
     // audio=${recitationId}}&
-    const url = `${baseUrl}verses/by_key/${verse}?fields=text_imlaei`
+    const url = `${baseUrl}verses/by_key/${verse}?audio=${recitationId}&fields=text_imlaei`
     this.get(
       caller,
       onSuccess,
@@ -68,7 +76,7 @@ export const quranComApiModule = {
     )
   },
 
-  _receiveVerse(caller, path, onSuccess, onError) {
+  _receiveVerse (caller, path, onSuccess, onError) {
     caller.receiveFile(path, {
       type: 'mp3',
       name: path
@@ -89,24 +97,25 @@ export const quranComApiModule = {
 
     logger.log('download from=>' + url)
     // this._receiveVerse(caller, path, onSuccess, () => {
-      caller.download(url, {
-        headers: {},
-        timeout: 600000,
-        transfer: {
-          path,
-          opts: {
-            type: 'mp3',
-            name: path
-          }
+    caller.download(url, {
+      headers: {},
+      timeout: 600000,
+      transfer: {
+        path,
+        opts: {
+          type: 'mp3',
+          name: path,
+          timeout: 600000
         }
-      }).then((result) => {
-        onSuccess(result)
-      }).catch((error) => {
-        logger.error('error=>' + JSON.stringify(error))
-        if (onError) {
-          onError(error)
-        }
-      })
+      }
+    }).then((result) => {
+      onSuccess(result)
+    }).catch((error) => {
+      logger.error('error=>' + JSON.stringify(error))
+      if (onError) {
+        onError(error)
+      }
+    })
     // })
   }
 }

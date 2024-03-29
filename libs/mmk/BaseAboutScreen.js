@@ -52,6 +52,8 @@ export class BaseAboutScreen {
   drawNext () {
     if (!this.nextIconSrc) return
 
+    this.posY += 16
+
     this.nextBg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
       x: (SCREEN_WIDTH - this.nextIconSize) / 2,
       y: this.posY,

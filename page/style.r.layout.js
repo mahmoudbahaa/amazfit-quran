@@ -77,7 +77,7 @@ export const VERSE_PLAYER_LABEL = {
   color: 0xffffff
 }
 
-export const PLAYER_BTN_X = px(8)
+export const PLAYER_BTN_X = px(4)
 export const PLAYER_BTN_W = px(64)
 export const PLAYER_BTN_H = px(64)
 export const PLAYER_BTN_Y = SCREEN_HEIGHT / 2 - PLAYER_BTN_H * 1.5

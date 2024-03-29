@@ -1,4 +1,4 @@
-/* global AppSideService, Logger */
+/* global AppSideService */
 
 import { BaseSideService } from '../libs/zml/dist/zml-side'
 

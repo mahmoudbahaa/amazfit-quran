@@ -1,6 +1,6 @@
 import * as hmUI from '@zos/ui'
 import { px } from '@zos/utils'
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../libs/mmk/UiParams'
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 
 let loadingAnim
 export function createLoadingWidget () {

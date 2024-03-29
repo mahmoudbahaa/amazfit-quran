@@ -1,7 +1,6 @@
 /* global getApp */
 import { getLanguage } from '@zos/settings'
 import { parsePO } from './langParser'
-import { getLang } from '../storage/localStorage'
 
 let DEVICE_LANG_VALUE
 
@@ -52,8 +51,7 @@ export function isRtlLang (lang = undefined) {
 }
 
 export function getCurLang () {
-  let lang = getLang()
-  if (lang === undefined) lang = getApp()._options.globalData.langCode
+  let lang = getApp()._options.globalData.langCode
   if (lang === undefined) lang = getLanguageCode()
   if (lang === undefined) lang = FALLBACK_LANG
   return lang

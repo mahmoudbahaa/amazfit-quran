@@ -34,8 +34,8 @@ class AboutScreen extends BaseAboutScreen {
     this.appName = `${_('Quran App', lang)}`
     this.version = `(${_(majorVersion, lang)}${_('.', lang)}${_(minorVersion, lang)})`
     this.infoRows = [
-      [_('Mahmoud Bahaa', lang), _('Developer', lang)],
-      [_('Nisreen Ali', lang), _('Designer', lang)]
+      [_('Mahmoud Bahaa', lang), _('Developer', lang)]
+      // [_('Nisreen Ali', lang), _('Designer', lang)]
     ]
     this.infoHeaderWidth = px(170)
 

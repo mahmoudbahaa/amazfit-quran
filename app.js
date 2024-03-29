@@ -1,5 +1,6 @@
 /* global App */
 import { BaseApp } from './libs/zml/dist/zml-app'
+import { Time } from '@zos/sensor'
 
 App(
   BaseApp({
@@ -9,7 +10,11 @@ App(
       settings: undefined,
       langCode: undefined,
       pageNumber: 0,
-      scrollTop: 0
+      scrollTop: 0,
+      continue: true,
+      errorCount: 0,
+      verseStartTime: undefined,
+      time: new Time()
     },
     onCreate () {
       console.log('app on create invoke')
