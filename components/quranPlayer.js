@@ -29,8 +29,6 @@ export class QuranPlayer {
   #onHold
   #relativePath
   #basePage
-  #type
-  #number
   #recitation
 
   constructor (basePage) {
@@ -51,8 +49,9 @@ export class QuranPlayer {
     switch (result.action) {
       case START:
         this.#reset()
-        this.#type = result.type
+        getApp()._options.globalData.player.type = result.type
         this.#playSurahOrJuz(parseInt(result.number))
+        if (!isNaN(result.verse)) this.#curPlayVerse = this.#verses.indexOf(result.verse) - 1
         break
       case EXIT:
         this.#doExit()
@@ -71,10 +70,10 @@ export class QuranPlayer {
         this.#player.stop()
         break
       case PREVIOUS:
-        this.#playSurahOrJuz(this.#number - 1)
+        this.#playSurahOrJuz(getApp()._options.globalData.player.number - 1)
         break
       case NEXT:
-        this.#playSurahOrJuz(this.#number + 1)
+        this.#playSurahOrJuz(getApp()._options.globalData.player.number + 1)
         break
       case DECREASE_VOLUME:
         this.#player.setVolume(this.#player.getVolume() - VOLUME_INCREMENT)
@@ -87,7 +86,7 @@ export class QuranPlayer {
 
   updateStatus (curDownVerse) {
     this.#curDownVerse = curDownVerse
-    getApp()._options.globalData.curDownloadedVerse = this.#verses[curDownVerse]
+    getApp()._options.globalData.player.curDownloadedVerse = this.#verses[curDownVerse]
     if (curDownVerse - this.#curPlayVerse > PLAYER_BUFFER_SIZE) {
       this.#playVerse()
     }
@@ -113,8 +112,8 @@ export class QuranPlayer {
   }
 
   #reset (partialReset = false) {
-    getApp()._options.globalData.curVerse = undefined
-    getApp()._options.globalData.curDownloadedVerse = undefined
+    getApp()._options.globalData.player.curVerse = undefined
+    getApp()._options.globalData.player.curDownloadedVerse = undefined
 
     this.#curPlayVerse = -1
     this.#curDownVerse = -1
@@ -123,11 +122,13 @@ export class QuranPlayer {
 
     if (partialReset) return
 
+    getApp()._options.globalData.player.type = undefined
+    getApp()._options.globalData.player.number = undefined
     this.#relativePath = undefined
   }
 
   #playSurahOrJuz (number) {
-    switch (this.#type) {
+    switch (getApp()._options.globalData.player.type) {
       case PLAYER_TYPE_JUZ: {
         if (number > NUM_JUZS || number < 1) return
         this.#verses = getJuzVerses(number)
@@ -141,7 +142,7 @@ export class QuranPlayer {
     }
 
     this.#reset(true)
-    this.#number = number
+    getApp()._options.globalData.player.number = number
     if (this.#player !== undefined) {
       this.#player.stop()
     }
@@ -173,7 +174,7 @@ export class QuranPlayer {
 
     if (this.#curPlayVerse >= this.#verses.length) {
       if (getApp()._options.globalData.continue) {
-        this.#playSurahOrJuz(this.#number + 1)
+        this.#playSurahOrJuz(getApp()._options.globalData.player.number + 1)
       } else {
         this.#doExit(false)
       }
@@ -193,8 +194,8 @@ export class QuranPlayer {
       const that = this
       player.addEventListener(player.event.PREPARE, (result) => {
         if (result) {
-          getApp()._options.globalData.verseStartTime = getApp()._options.globalData.time.getTime()
-          getApp()._options.globalData.curVerse = this.#verses[that.#curPlayVerse]
+          getApp()._options.globalData.player.verseStartTime = getApp()._options.globalData.time.getTime()
+          getApp()._options.globalData.player.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
           logger.log(`=== prepare fail ===${JSON.stringify(result)}`)

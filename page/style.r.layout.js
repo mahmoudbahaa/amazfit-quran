@@ -77,10 +77,10 @@ export const VERSE_PLAYER_LABEL = {
   color: 0xffffff
 }
 
-export const PLAYER_BTN_X = px(4)
+export const PLAYER_BTN_X = px(16)
 export const PLAYER_BTN_W = px(64)
 export const PLAYER_BTN_H = px(64)
-export const PLAYER_BTN_Y = SCREEN_HEIGHT / 2 - PLAYER_BTN_H * 1.5
+export const PLAYER_BTN_Y = SCREEN_HEIGHT / 2 - PLAYER_BTN_H * 2
 export const PLAYER_BTN_OY = px(64)
 export const PLAYER_BTN = {
   x: PLAYER_BTN_X,
@@ -91,11 +91,11 @@ export const PLAYER_BTN = {
 }
 
 export const VERSE_PLAYER_TEXT = {
-  x: PLAYER_BTN_W,
+  x: PLAYER_BTN_W + PLAYER_BTN_X,
   y: px(40),
-  w: SCREEN_WIDTH - PLAYER_BTN_W * 2,
+  w: SCREEN_WIDTH - PLAYER_BTN_W * 2 - PLAYER_BTN_X * 2,
   h: SCREEN_HEIGHT - px(80),
-  text_size: px(32),
+  text_size: px(48),
   text_style: hmUI.text_style.WRAP,
   align_h: hmUI.align.CENTER_H,
   align_v: hmUI.align.CENTER_V,

@@ -55,7 +55,6 @@ Page(
         method: 'get.settings',
         params: ['lang', 'recitation']
       }).then(result => {
-        console.log(JSON.stringify(result))
         const settings = result.data
         settings.recitation = settings.recitation || 'Mishari Rashid al-`Afasy,7'
         getApp()._options.globalData.settings = settings

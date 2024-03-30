@@ -74,3 +74,11 @@ export function getVerseInfo (verse) {
 export function setVerseInfo (verse, mapping) {
   setValue(`vi${verse}`, mapping)
 }
+
+export function getPlayerInfo () {
+  return getValue('playerInfo')
+}
+
+export function setPlayerInfo (verse, mapping) {
+  setValue('playerInfo', mapping)
+}

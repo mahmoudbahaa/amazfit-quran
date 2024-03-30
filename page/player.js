@@ -2,7 +2,7 @@
 import hmUI from '@zos/ui'
 import { log as Logger, px } from '@zos/utils'
 import { setWakeUpRelaunch } from '@zos/display'
-import { replace } from '@zos/router'
+import { replace, exit } from '@zos/router'
 // import { BasePage } from '../libs/zml/dist/zml-page'
 import { BasePage } from '@zeppos/zml/base-page'
 import * as Styles from './style.r.layout.js'
@@ -19,22 +19,23 @@ import {
   INCREASE_VOLUME,
   QuranPlayer
 } from '../components/quranPlayer'
-import { getVerseInfo, getVerseText, setVerseInfo, setVerseText } from '../libs/storage/localStorage.js'
+import { getVerseInfo, getVerseText, setPlayerInfo, setVerseInfo, setVerseText } from '../libs/storage/localStorage.js'
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { MAX_WORDS_PER_PAGE, NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
+import { createExitButton } from '../components/exitWidget'
 
 const thisPage = 'page/player'
 const logger = Logger.getLogger('player page')
 const lastVerseText = ''
-
 Page(
   BasePage({
     state: {
       interval: undefined,
       player: undefined,
       type: undefined,
-      number: -1
+      number: -1,
+      verse: undefined
     },
 
     onInit (paramsString) {
@@ -46,6 +47,7 @@ Page(
       const params = parseQuery(paramsString)
       this.state.number = parseInt(params.number)
       this.state.type = params.type
+      this.state.verse = params.verse
     },
 
     onCall (data) {
@@ -62,7 +64,7 @@ Page(
     getServiceParam (action) {
       let extraParams = ''
       if (action === START) {
-        extraParams = `&type=${this.state.type}&number=${this.state.number}`
+        extraParams = `&type=${this.state.type}&number=${this.state.number}&verse=${this.state.verse}`
       }
 
       return `action=${action}${extraParams}`
@@ -89,7 +91,7 @@ Page(
       if (mapping.length <= 1) return text
 
       const words = text.split(' ')
-      const elapsed = curTime - getApp()._options.globalData.verseStartTime
+      const elapsed = curTime - getApp()._options.globalData.player.verseStartTime
 
       for (let i = 0; i < words.length; i += MAX_WORDS_PER_PAGE) {
         const page = i / MAX_WORDS_PER_PAGE
@@ -123,7 +125,7 @@ Page(
 
       let lastVerse
       this.state.interval = setInterval(() => {
-        let verse = getApp()._options.globalData.curVerse
+        let verse = getApp()._options.globalData.player.curVerse
         let verseTextText
         if (verse !== undefined) {
           if (lastVerse !== verse) {
@@ -133,23 +135,30 @@ Page(
           verseTextText = this.getVerseText(verse, getApp()._options.globalData.time.getTime())
           if (lastVerseText.localeCompare(verseTextText) === 0) return
         } else {
-          verse = getApp()._options.globalData.curDownloadedVerse
+          verse = getApp()._options.globalData.player.curDownloadedVerse
           if (verse === undefined) return
           verseTextText = this.getDownloadLabel(verse)
         }
 
         surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
         verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
-        verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
+        // verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
+        verseText.setProperty(hmUI.prop.MORE, {
+          font: 'font/' + fonts[fontIdx],
+          text: fonts[fontIdx] + '....   ' + verseTextText || ''
+        })
       }, 20)
 
+      createExitButton(0, SCREEN_WIDTH - 64, 64, exit)
       const playerButtons = [
-        { src: 'back.png', action: PREVIOUS, left: true },
-        { src: 'play-pause.png', action: PAUSE, left: true },
         { src: 'volume-dec.png', action: DECREASE_VOLUME, left: true },
-        { src: 'forward.png', action: NEXT, left: false },
+        { src: 'play.png', action: PLAY, left: true },
+        { src: 'pause.png', action: PAUSE, left: true },
+        { src: 'back.png', action: PREVIOUS, left: true },
+        { src: 'volume-inc.png', action: INCREASE_VOLUME, left: false },
         { src: 'stop.png', action: STOP, left: false },
-        { src: 'volume-inc.png', action: INCREASE_VOLUME, left: false }
+        { src: 'cancel.png', action: EXIT, left: false },
+        { src: 'forward.png', action: NEXT, left: false }
       ]
 
       let startYLeft = 0
@@ -178,12 +187,14 @@ Page(
         }).addEventListener(hmUI.event.CLICK_UP, () => {
           bg.setProperty(hmUI.prop.VISIBLE, true)
           setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), 200)
-          this.state.player.doAction(this.getServiceParam(playerButton.action))
-          if (playerButton.action === PAUSE) {
-            playerButton.action = PLAY
-          } else if (playerButton.action === PLAY) {
-            playerButton.action = PAUSE
+
+          if (playerButton.action === EXIT) {
+            fontIdx++
+            // exit()
+            return
           }
+
+          this.state.player.doAction(this.getServiceParam(playerButton.action))
         })
       })
 
@@ -198,6 +209,9 @@ Page(
     },
     onDestroy () {
       logger.log('page on destroy invoke')
+      delete this.globalData.player.verseStartTime
+      delete this.globalData.player.curDownloadedVerse
+      setPlayerInfo(this.globalData.player)
       this.state.player.doAction(this.getServiceParam(EXIT))
 
       if (this.state.interval) {

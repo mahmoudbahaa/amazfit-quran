@@ -60,8 +60,8 @@ export function parseQuery (queryString) {
 }
 
 export function getFileName (verse) {
-  const surahNumber = verse.split(':')[0]
-  const verseNumber = verse.split(':')[1]
+  const surahNumber = verse.toString().split(':')[0]
+  const verseNumber = verse.toString().split(':')[1]
   return `${surahNumber.padStart(3, '0') + verseNumber.padStart(3, '0')}.mp3`
 }
 
