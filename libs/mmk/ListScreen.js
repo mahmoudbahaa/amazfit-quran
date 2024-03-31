@@ -10,8 +10,6 @@ import {
 import { RowEntry } from './ListScreenParts/RowEntry'
 import * as Styles from '../../page/style.r.layout'
 
-let lastPosY = -1000
-
 export class ListScreen {
   constructor (rtl, yOffset = 0) {
     this._init(rtl, yOffset)
@@ -23,15 +21,17 @@ export class ListScreen {
     this.entries = []
     // this.realEntriesNum = 0
     this.rtl = rtl
-    this.vc = hmUI.createWidget(hmUI.widget.VIEW_CONTAINER, { bounce: 0 })
+    this.vc = hmUI.createWidget(hmUI.widget.VIEW_CONTAINER, {
+      bounce: 0
+    })
     this.scrollBar = hmUI.createWidget(hmUI.widget.PAGE_SCROLLBAR, {
       target: this.vc
     })
 
-    lastPosY = -1000
     if (this.scrollInterval) return
 
     if (IS_ROUND) {
+      let lastPosY = -1000
       this.scrollInterval = setInterval(() => {
         const yOffset = this.vc.getProperty(hmUI.prop.POS_Y)
         if (lastPosY === yOffset) return
@@ -52,6 +52,12 @@ export class ListScreen {
   }
 
   row (userConfig) {
+    if (userConfig.rtl === undefined) userConfig.rtl = this.rtl
+    if (userConfig.alignH === undefined) userConfig.alignH = this.rtl ? hmUI.align.RIGHT : hmUI.align.LEFT
+    return this._classBasedEntry(RowEntry, userConfig)
+  }
+
+  replaceOrCreateRow (userConfig, index) {
     userConfig = {
       ...Styles.ROW_STYLE,
       ...userConfig,
@@ -61,12 +67,6 @@ export class ListScreen {
       }
     }
 
-    if (userConfig.rtl === undefined) userConfig.rtl = this.rtl
-    if (userConfig.alignH === undefined) userConfig.alignH = this.rtl ? hmUI.align.RIGHT : hmUI.align.LEFT
-    return this._classBasedEntry(RowEntry, userConfig)
-  }
-
-  replaceOrCreateRow (userConfig, index) {
     if (index >= this.entries.length) {
       return this.row(userConfig)
     }

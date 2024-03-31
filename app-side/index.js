@@ -1,6 +1,5 @@
 /* global Logger AppSideService */
 
-// import { BaseSideService } from '../libs/zml/dist/zml-side'
 import { BaseSideService, settingsLib } from '@zeppos/zml/base-side'
 import { QuranVersesDownloader } from './quranVersesDownloader'
 

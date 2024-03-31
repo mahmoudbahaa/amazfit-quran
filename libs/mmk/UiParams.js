@@ -15,6 +15,7 @@ export const SECONDARY_COLOR = 0x006400
 export const SECONDARY_COLOR_TXT = 0x88FF88
 export const WARNING_COLOR = 0xAD3C23
 export const WARNING_COLOR_TXT = 0xAD3C23
+export const STATUS_COLOR_TXT = 0xFF7F50
 export const BLACK = 0x000000
 let SCREEN_MARGIN_Y = 0
 let SCREEN_MARGIN_X = 0

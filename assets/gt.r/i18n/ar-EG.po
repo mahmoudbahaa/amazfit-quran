@@ -94,4 +94,4 @@ msgid "number"
 msgstr "رقم"
 
 msgid "In The name of Allah"
-msgstr "بسم الله الرحمن الرحيم"
+msgstr "﷽"

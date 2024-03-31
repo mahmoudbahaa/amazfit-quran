@@ -10,7 +10,8 @@ import {
   BASE_FONT_SIZE,
   SCREEN_HEIGHT,
   SECONDARY_COLOR_TXT,
-  MAIN_COLOR
+  MAIN_COLOR,
+  STATUS_COLOR_TXT
 } from './UiParams'
 import { deviceName, deviceClass, isLowRamDevice } from './DeviceIdentifier'
 import { replace } from '@zos/router'
@@ -40,6 +41,7 @@ export class BaseAboutScreen {
     this.fontSize = BASE_FONT_SIZE
     this.posY = SCREEN_MARGIN_Y
     this.headerPos = []
+    this.headerHeight = []
     this.nextIconSrc = ''
     this.nextIconSize = 0
     this.nextPage = ''
@@ -49,10 +51,24 @@ export class BaseAboutScreen {
     return Math.floor(this.fontSize * 2)
   }
 
+  drawStatus () {
+    this.posY += 16
+
+    this.status = hmUI.createWidget(hmUI.widget.TEXT, {
+      x: 0,
+      y: this.posY,
+      w: SCREEN_WIDTH,
+      h: this.fontSize,
+      text: '',
+      text_size: this.fontSize,
+      align_h: hmUI.align.CENTER_H,
+      align_v: hmUI.align.CENTER_V,
+      color: STATUS_COLOR_TXT
+    })
+  }
+
   drawNext () {
     if (!this.nextIconSrc) return
-
-    this.posY += 16
 
     this.nextBg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
       x: (SCREEN_WIDTH - this.nextIconSize) / 2,
@@ -64,7 +80,7 @@ export class BaseAboutScreen {
 
     this.nextBg.setProperty(hmUI.prop.VISIBLE, false)
 
-    hmUI.createWidget(hmUI.widget.IMG, {
+    this.next = hmUI.createWidget(hmUI.widget.IMG, {
       x: (SCREEN_WIDTH - this.nextIconSize) / 2,
       y: this.posY,
       w: this.nextIconSize,
@@ -73,7 +89,9 @@ export class BaseAboutScreen {
       center_x: this.nextIconSize / 2,
       center_y: this.nextIconSize / 2,
       angle: this.rtl ? 180 : 0
-    }).addEventListener(hmUI.event.CLICK_UP, () => {
+    })
+
+    this.next.addEventListener(hmUI.event.CLICK_UP, () => {
       this.nextBg.setProperty(hmUI.prop.VISIBLE, true)
       setTimeout(() => {
         this.nextBg.setProperty(hmUI.prop.VISIBLE, false)
@@ -83,6 +101,7 @@ export class BaseAboutScreen {
       })
     })
 
+    this.next.setProperty(hmUI.prop.VISIBLE, false)
     this.posY += this.nextIconSize
   }
 
@@ -96,17 +115,19 @@ export class BaseAboutScreen {
         text_width: WIDGET_WIDTH
       })
 
+      const height = this.headerHeight[i] ? this.headerHeight[i] : metrics.height
       hmUI.createWidget(hmUI.widget.TEXT, {
         x: SCREEN_MARGIN_X,
         y: this.posY,
         w: WIDGET_WIDTH,
-        h: metrics.height,
+        h: height,
         text: headerText,
         text_size: this.headerFontSize[i],
         color: SECONDARY_COLOR_TXT,
-        align_h: hmUI.align.CENTER_H
+        align_h: hmUI.align.CENTER_H,
+        align_v: hmUI.align.CENTER_V
       })
-      this.posY += metrics.height + 8
+      this.posY += height + 8
     })
   }
 
@@ -215,6 +236,7 @@ export class BaseAboutScreen {
     this.drawInfo()
     this.drawHeader('bottom')
     this.buildDeviceInfo()
+    this.drawStatus()
     this.drawNext()
   }
 }

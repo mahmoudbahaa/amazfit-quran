@@ -1,8 +1,9 @@
 /* global getApp */
-import { getChapter, useSimpleSurahName } from '../libs/storage/localStorage'
+import { getChapter, getChaptersListRows, setChaptersListRows, useSimpleSurahName } from '../libs/storage/localStorage'
 import { JUZS } from '../page/test-data/juzs'
 import { _, isRtlLang } from '../libs/i18n/lang'
 import {
+  BLACK,
   MAIN_COLOR,
   MAIN_COLOR_TXT,
   SECONDARY_COLOR,
@@ -56,6 +57,7 @@ export class ChaptersScreen extends ListScreen {
         this.replaceOrCreateRow(next, pos++)
       }
 
+      this.replaceOrCreateRow({ }, pos++)
       this.finalize(pos, getApp()._options.globalData.scrollTop)
       deleteLoadingWidget()
       return
@@ -66,27 +68,7 @@ export class ChaptersScreen extends ListScreen {
   }
 
   #getRows () {
-    const rows = []
-
-    const ar = getApp()._options.globalData.langCode === 'ar'
-    const useSimpleNames = useSimpleSurahName() === 'true'
-    const nameKey = ar ? 'name_arabic' : useSimpleNames ? 'name_simple' : 'name_complex'
-    let lastSurahNumber = -1
-    JUZS.forEach((juz) => {
-      rows.push(this.#addJuzRow(juz.juz_number))
-      const verseMapping = juz.verse_mapping
-      for (const surahNumber in verseMapping) {
-        if (lastSurahNumber === surahNumber) continue
-
-        const chapter = getChapter(surahNumber - 1)
-        const name = chapter[nameKey]
-        const translation = ar ? '' : chapter.translated_name.name
-        rows.push(this.#addChapterRow(surahNumber, name, translation))
-        lastSurahNumber = surahNumber
-      }
-    })
-
-    return rows
+    return getRows()
   }
 
   #addNextPreviousButton (label, pageNumber) {
@@ -104,41 +86,74 @@ export class ChaptersScreen extends ListScreen {
       iconColor: WARNING_COLOR
     }
   }
+}
 
-  #addJuzRow (juzNumber) {
-    return {
-      text: `${_('Juz\'')} ${_(`${juzNumber}`)}`,
-      color: MAIN_COLOR_TXT,
-      card: {
-        callback: () => {
-          getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
-          push({
-            url: playerPage,
-            params: `type=${PLAYER_TYPE_JUZ}&number=${juzNumber}`
-          })
-        }
-      },
-      iconColor: MAIN_COLOR
-    }
+export function getRows () {
+  console.log('Getting rows')
+  let rows = getChaptersListRows()
+  if (rows !== undefined) {
+    console.log('Got Rows')
+    return rows
   }
 
-  #addChapterRow (surahNumber, name, translation) {
-    return {
-      text: `${_('Surah')} ${name}`,
-      color: SECONDARY_COLOR_TXT,
-      card: {
-        callback: () => {
-          getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
-          push({
-            url: playerPage,
-            params: `type=${PLAYER_TYPE_CHAPTER}&number=${surahNumber}`
-          })
-        }
-      },
+  rows = []
+  const ar = getApp()._options.globalData.langCode === 'ar'
+  const useSimpleNames = useSimpleSurahName() === 'true'
+  const nameKey = ar ? 'name_arabic' : useSimpleNames ? 'name_simple' : 'name_complex'
+  let lastSurahNumber = -1
+  JUZS.forEach((juz) => {
+    rows.push(addJuzRow(juz.juz_number))
+    const verseMapping = juz.verse_mapping
+    for (const surahNumber in verseMapping) {
+      if (lastSurahNumber === surahNumber) continue
 
-      description: translation,
-      iconText: _(surahNumber),
-      iconColor: SECONDARY_COLOR
+      const chapter = getChapter(surahNumber - 1)
+      const name = chapter[nameKey]
+      const translation = ar ? '' : chapter.translated_name.name
+      rows.push(addChapterRow(surahNumber, name, translation))
+      lastSurahNumber = surahNumber
     }
+  })
+
+  setChaptersListRows(rows)
+  console.log('Got Rows')
+
+  return rows
+}
+
+function addJuzRow (juzNumber) {
+  return {
+    text: `${_('Juz\'')} ${_(`${juzNumber}`)}`,
+    color: MAIN_COLOR_TXT,
+    card: {
+      callback: () => {
+        getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
+        push({
+          url: playerPage,
+          params: `type=${PLAYER_TYPE_JUZ}&number=${juzNumber}`
+        })
+      }
+    },
+    iconColor: MAIN_COLOR
+  }
+}
+
+function addChapterRow (surahNumber, name, translation) {
+  return {
+    text: `${_('Surah')} ${name}`,
+    color: SECONDARY_COLOR_TXT,
+    card: {
+      callback: () => {
+        getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
+        push({
+          url: playerPage,
+          params: `type=${PLAYER_TYPE_CHAPTER}&number=${surahNumber}`
+        })
+      }
+    },
+
+    description: translation,
+    iconText: _(surahNumber),
+    iconColor: SECONDARY_COLOR
   }
 }

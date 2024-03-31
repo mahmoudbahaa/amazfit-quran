@@ -3,7 +3,6 @@ import hmUI from '@zos/ui'
 import { log as Logger, px } from '@zos/utils'
 import { setWakeUpRelaunch } from '@zos/display'
 import { replace, exit } from '@zos/router'
-// import { BasePage } from '../libs/zml/dist/zml-page'
 import { BasePage } from '@zeppos/zml/base-page'
 import * as Styles from './style.r.layout.js'
 import { parseQuery } from '../libs/utils.js'
@@ -23,11 +22,11 @@ import { getVerseInfo, getVerseText, setPlayerInfo, setVerseInfo, setVerseText }
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { MAX_WORDS_PER_PAGE, NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
-import { createExitButton } from '../components/exitWidget'
 
 const thisPage = 'page/player'
 const logger = Logger.getLogger('player page')
 const lastVerseText = ''
+
 Page(
   BasePage({
     state: {
@@ -142,14 +141,9 @@ Page(
 
         surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
         verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
-        // verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
-        verseText.setProperty(hmUI.prop.MORE, {
-          font: 'font/' + fonts[fontIdx],
-          text: fonts[fontIdx] + '....   ' + verseTextText || ''
-        })
+        verseText.setProperty(hmUI.prop.TEXT, verseTextText || '')
       }, 20)
 
-      createExitButton(0, SCREEN_WIDTH - 64, 64, exit)
       const playerButtons = [
         { src: 'volume-dec.png', action: DECREASE_VOLUME, left: true },
         { src: 'play.png', action: PLAY, left: true },
@@ -189,8 +183,7 @@ Page(
           setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), 200)
 
           if (playerButton.action === EXIT) {
-            fontIdx++
-            // exit()
+            exit()
             return
           }
 

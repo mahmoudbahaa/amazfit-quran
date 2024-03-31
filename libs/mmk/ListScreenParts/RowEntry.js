@@ -33,8 +33,8 @@ export class RowEntry extends CardEntry {
       h: this.textHeight
     })
 
-    this.bg.setProperty(hmUI.prop.COLOR, config.card.color)
-    this.bg.removeEventListener(this.config.mod_callback)
+    this.bg.setProperty(hmUI.prop.COLOR, config.card.color || 0x000000)
+    if (this.mod_callback) this.bg.removeEventListener(hmUI.event.CLICK_UP, this.mod_callback)
     this._setCallback()
 
     this.descView.setProperty(hmUI.prop.MORE, {
@@ -111,7 +111,7 @@ export class RowEntry extends CardEntry {
       x: this.textX,
       y: 9 + this.textHeight,
       w: this.textWidth,
-      // h: this.rowViewHeight - 36,
+      h: this.descriptionHeight,
       align_h: this.rowConfig.alignH,
       text_style: hmUI.text_style.WRAP,
       text_size: this.rowConfig.fontSize - 2,
@@ -123,7 +123,7 @@ export class RowEntry extends CardEntry {
   get _separatorConfig () {
     return {
       x: -SCREEN_WIDTH / 2,
-      y: this.rowViewHeight - 4,
+      y: -4,
       w: SCREEN_WIDTH * 2,
       h: 4,
       color: this.rowConfig.outlineColor

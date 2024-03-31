@@ -82,3 +82,11 @@ export function getPlayerInfo () {
 export function setPlayerInfo (verse, mapping) {
   setValue('playerInfo', mapping)
 }
+
+export function getChaptersListRows () {
+  return getValue('chaptersListRows')
+}
+
+export function setChaptersListRows (rows) {
+  setValue('chaptersListRows', rows)
+}

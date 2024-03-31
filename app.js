@@ -1,10 +1,9 @@
 /* global App */
-// import { BaseApp } from './libs/zml/dist/zml-app'
 import { BaseApp } from '@zeppos/zml/base-app'
 
 import { Time } from '@zos/sensor'
-import { getPlayerInfo, setPlayerInfo } from './libs/storage/localStorage'
-import { push, replace } from '@zos/router'
+import { getPlayerInfo } from './libs/storage/localStorage'
+import { replace } from '@zos/router'
 
 App(
   BaseApp({

@@ -16,7 +16,9 @@ export class CardEntry {
   }
 
   _setCallback () {
-    this.config.mod_callback = () => {
+    if (!this.config.callback) return
+
+    this.mod_callback = () => {
       this.bg.setProperty(hmUI.prop.COLOR, MAIN_COLOR)
       setTimeout(() => {
         this.bg.setProperty(hmUI.prop.COLOR, this.config.color)
@@ -24,16 +26,13 @@ export class CardEntry {
       }, 200)
     }
 
-    this.group.addEventListener(hmUI.event.CLICK_UP, this.config.mod_callback)
+    this.group.addEventListener(hmUI.event.CLICK_UP, this.mod_callback)
   }
 
   _init () {
     this.group = this.screen.vc.createWidget(hmUI.widget.GROUP, this._groupConfig)
     this.bg = this.group.createWidget(hmUI.widget.FILL_RECT, this._bgConfig)
-
-    if (this.config.callback) {
-      this._setCallback()
-    }
+    this._setCallback()
   }
 
   get _groupConfig () {
