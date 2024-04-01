@@ -34,9 +34,6 @@ export class RowEntry extends CardEntry {
     })
 
     this.bg.setProperty(hmUI.prop.COLOR, config.card.color || 0x000000)
-    if (this.mod_callback) this.bg.removeEventListener(hmUI.event.CLICK_UP, this.mod_callback)
-    this._setCallback()
-
     this.descView.setProperty(hmUI.prop.MORE, {
       text: config.description ? config.description : '',
       y: 9 + this.textHeight
@@ -107,11 +104,12 @@ export class RowEntry extends CardEntry {
   }
 
   get _descrViewConfig () {
+    const h = this.descriptionHeight
     return {
       x: this.textX,
       y: 9 + this.textHeight,
       w: this.textWidth,
-      h: this.descriptionHeight,
+      h: h || this.textHeight,
       align_h: this.rowConfig.alignH,
       text_style: hmUI.text_style.WRAP,
       text_size: this.rowConfig.fontSize - 2,

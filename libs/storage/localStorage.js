@@ -1,4 +1,6 @@
 import { EasyFlashStorage } from './easy-storage'
+import { NUM_CHAPTERS } from '../constants'
+import { getEnChapter } from '../../page/data/chapters'
 let _flash
 function flash () {
   if (!_flash) _flash = new EasyFlashStorage()
@@ -19,6 +21,12 @@ function hasKey (key) {
 
 export function getChapter (chapter) {
   return getValue('chapter' + chapter)
+}
+
+export function setEnChapters () {
+  for (let i = 0; i < NUM_CHAPTERS; i++) {
+    setChapter(i, getEnChapter(i))
+  }
 }
 
 export function setChapters (chapters) {
@@ -79,8 +87,8 @@ export function getPlayerInfo () {
   return getValue('playerInfo')
 }
 
-export function setPlayerInfo (verse, mapping) {
-  setValue('playerInfo', mapping)
+export function setPlayerInfo (playerInfo) {
+  setValue('playerInfo', playerInfo)
 }
 
 export function getChaptersListRows () {
@@ -89,4 +97,20 @@ export function getChaptersListRows () {
 
 export function setChaptersListRows (rows) {
   setValue('chaptersListRows', rows)
+}
+
+export function getAutoStart () {
+  return getValue('autoStart')
+}
+
+export function setAutoStart (autoStart) {
+  setValue('autoStart', autoStart)
+}
+
+export function getDontShowWarning () {
+  return getValue('dontShowWarning')
+}
+
+export function setDontShowWarning (dontShowWarning) {
+  setValue('dontShowWarning', dontShowWarning)
 }

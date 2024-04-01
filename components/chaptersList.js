@@ -1,9 +1,8 @@
 /* global getApp */
 import { getChapter, getChaptersListRows, setChaptersListRows, useSimpleSurahName } from '../libs/storage/localStorage'
-import { JUZS } from '../page/test-data/juzs'
+import { getVerseMapping } from '../page/data/juzs'
 import { _, isRtlLang } from '../libs/i18n/lang'
 import {
-  BLACK,
   MAIN_COLOR,
   MAIN_COLOR_TXT,
   SECONDARY_COLOR,
@@ -13,7 +12,7 @@ import {
 } from '../libs/mmk/UiParams'
 import { push } from '@zos/router'
 import { ListScreen } from '../libs/mmk/ListScreen'
-import { NUM_PAGES } from '../libs/constants'
+import { NUM_JUZS, NUM_PAGES } from '../libs/constants'
 import { deleteLoadingWidget } from './loadingWidget'
 import hmUI from '@zos/ui'
 import { PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from './quranPlayer'
@@ -68,7 +67,20 @@ export class ChaptersScreen extends ListScreen {
   }
 
   #getRows () {
-    return getRows()
+    const rows = getRows()
+    rows.forEach(row => {
+      row.card = {
+        callback: () => {
+          getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
+          push({
+            url: playerPage,
+            params: `type=${row.type}&number=${row.number}`
+          })
+        }
+      }
+    })
+
+    return rows
   }
 
   #addNextPreviousButton (label, pageNumber) {
@@ -101,19 +113,19 @@ export function getRows () {
   const useSimpleNames = useSimpleSurahName() === 'true'
   const nameKey = ar ? 'name_arabic' : useSimpleNames ? 'name_simple' : 'name_complex'
   let lastSurahNumber = -1
-  JUZS.forEach((juz) => {
-    rows.push(addJuzRow(juz.juz_number))
-    const verseMapping = juz.verse_mapping
+  for (let i = 0; i < NUM_JUZS; i++) {
+    rows.push(addJuzRow(i + 1))
+    const verseMapping = getVerseMapping(i)
     for (const surahNumber in verseMapping) {
       if (lastSurahNumber === surahNumber) continue
 
       const chapter = getChapter(surahNumber - 1)
       const name = chapter[nameKey]
-      const translation = ar ? '' : chapter.translated_name.name
+      const translation = ar ? '' : chapter.translated_name
       rows.push(addChapterRow(surahNumber, name, translation))
       lastSurahNumber = surahNumber
     }
-  })
+  }
 
   setChaptersListRows(rows)
   console.log('Got Rows')
@@ -123,35 +135,20 @@ export function getRows () {
 
 function addJuzRow (juzNumber) {
   return {
+    type: PLAYER_TYPE_JUZ,
+    number: juzNumber,
     text: `${_('Juz\'')} ${_(`${juzNumber}`)}`,
     color: MAIN_COLOR_TXT,
-    card: {
-      callback: () => {
-        getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
-        push({
-          url: playerPage,
-          params: `type=${PLAYER_TYPE_JUZ}&number=${juzNumber}`
-        })
-      }
-    },
     iconColor: MAIN_COLOR
   }
 }
 
 function addChapterRow (surahNumber, name, translation) {
   return {
+    type: PLAYER_TYPE_CHAPTER,
+    number: surahNumber,
     text: `${_('Surah')} ${name}`,
     color: SECONDARY_COLOR_TXT,
-    card: {
-      callback: () => {
-        getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
-        push({
-          url: playerPage,
-          params: `type=${PLAYER_TYPE_CHAPTER}&number=${surahNumber}`
-        })
-      }
-    },
-
     description: translation,
     iconText: _(surahNumber),
     iconColor: SECONDARY_COLOR

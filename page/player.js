@@ -2,10 +2,10 @@
 import hmUI from '@zos/ui'
 import { log as Logger, px } from '@zos/utils'
 import { setWakeUpRelaunch } from '@zos/display'
-import { replace, exit } from '@zos/router'
+import { exit } from '@zos/router'
 import { BasePage } from '@zeppos/zml/base-page'
 import * as Styles from './style.r.layout.js'
-import { parseQuery } from '../libs/utils.js'
+import { parseQuery, restorePlayer } from '../libs/utils.js'
 import {
   START,
   EXIT,
@@ -22,10 +22,10 @@ import { getVerseInfo, getVerseText, setPlayerInfo, setVerseInfo, setVerseText }
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { MAX_WORDS_PER_PAGE, NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
+import { Time } from '@zos/sensor'
 
-const thisPage = 'page/player'
+const time = new Time()
 const logger = Logger.getLogger('player page')
-const lastVerseText = ''
 
 Page(
   BasePage({
@@ -34,7 +34,8 @@ Page(
       player: undefined,
       type: undefined,
       number: -1,
-      verse: undefined
+      verse: undefined,
+      verseInfo: {}
     },
 
     onInit (paramsString) {
@@ -48,13 +49,35 @@ Page(
       this.state.type = params.type
       this.state.verse = params.verse
     },
+    onPause () {
+      logger.log('page on pause invoke')
+    },
+    onResume () {
+      logger.log('page on resume invoke')
+      restorePlayer()
+    },
+    onDestroy () {
+      logger.log('page on destroy invoke')
+
+      delete getApp()._options.globalData.player.verseStartTime
+      delete getApp()._options.globalData.player.curDownloadedVerse
+      logger.log('Saving Player Info' + JSON.stringify(getApp()._options.globalData.player))
+      setPlayerInfo(getApp()._options.globalData.player)
+
+      logger.log('Exiting Player')
+      this.state.player.doAction(this.getServiceParam(EXIT))
+      this.state.player = undefined
+      if (this.state.interval) {
+        clearInterval(this.state.interval)
+      }
+    },
 
     onCall (data) {
-      if (data.curDownVerse) {
-        if (this.state.player) {
-          this.state.player.updateStatus(data.curDownVerse)
-        }
-      } else if (data.verse) {
+      if (this.state.player === undefined) return
+
+      if (data.curDownVerse !== undefined) {
+        this.state.player.updateStatus(data.curDownVerse)
+      } else if (data.verse !== undefined) {
         setVerseText(data.verse, data.verseText)
         setVerseInfo(data.verse, data.verseInfo)
       }
@@ -74,31 +97,27 @@ Page(
     },
 
     getDownloadLabel (verse) {
-      const verseText = verse ? this.getVerseLabel(verse) : '...'
-      return `${_('Downloading')} ${_('Verse')} ${verseText}`
+      return `${_('Downloading')} ${_('Verse')} ${verse ? this.getVerseLabel(verse) : '...'}`
     },
 
     getVerseLabel (verseInfo) {
-      const chapter = parseInt(verseInfo.split(':')[0])
-      const verse = parseInt(verseInfo.split(':')[1])
-      return `${_(verse.toString().padStart(3, '0'))}/${_(NUM_VERSES[chapter - 1].toString().padStart(3, '0'))}`
+      return `${_(verseInfo.split(':')[1].padStart(3, '0'))}/${_(NUM_VERSES[parseInt(verseInfo.split(':')[0]) - 1].toString().padStart(3, '0'))}`
     },
 
-    getVerseText (verse, curTime) {
-      const text = getVerseText(verse)
-      const mapping = getVerseInfo(verse)
-      if (mapping.length <= 1) return text
+    getVerseTextParts (verse) {
+      this.state.verseInfo.text = getVerseText(verse)
+      this.state.verseInfo.mapping = getVerseInfo(verse)
+      if (this.state.verseInfo.mapping.length <= 1) return [[this.state.verseInfo.text, 0]]
 
-      const words = text.split(' ')
-      const elapsed = curTime - getApp()._options.globalData.player.verseStartTime
+      const result = []
+      this.state.verseInfo.words = this.state.verseInfo.text.split(' ')
 
-      for (let i = 0; i < words.length; i += MAX_WORDS_PER_PAGE) {
-        const page = i / MAX_WORDS_PER_PAGE
-        if (elapsed > mapping[page] && elapsed < mapping[page + 1]) return words.slice(i, i + MAX_WORDS_PER_PAGE).join(' ')
+      for (let i = 0; i < this.state.verseInfo.words.length; i += MAX_WORDS_PER_PAGE) {
+        result.push([this.state.verseInfo.words.slice(i, i + MAX_WORDS_PER_PAGE).join(' '),
+          this.state.verseInfo.mapping[i / MAX_WORDS_PER_PAGE]])
       }
 
-      const start = Math.floor(words.length / MAX_WORDS_PER_PAGE) * MAX_WORDS_PER_PAGE
-      return words.slice(start, words.length).join(' ')
+      return result
     },
 
     build () {
@@ -122,18 +141,40 @@ Page(
         text: ''
       })
 
+      let verse
+      let verseTextText
       let lastVerse
+      let lastVerseText = ''
+      let lastVerseParts
+      let lastVersePartIndex
+      let elapsed
       this.state.interval = setInterval(() => {
-        let verse = getApp()._options.globalData.player.curVerse
-        let verseTextText
+        verse = getApp()._options.globalData.player.curVerse
         if (verse !== undefined) {
+          // A verse is being played
           if (lastVerse !== verse) {
+            // A new verse is played
+            lastVerseParts = this.getVerseTextParts(verse)
+            lastVersePartIndex = 0
+            verseTextText = lastVerseText = lastVerseParts[0][0]
             lastVerse = verse
+          } else if (lastVersePartIndex >= lastVerseParts.length - 1) {
+            // Reached the last part of the verse no need to check elapsed
+            verseTextText = lastVerseText
+          } else {
+            // There is still more parts of the verse check the need to go to next part
+            elapsed = time.getTime() - getApp()._options.globalData.player.verseStartTime
+            if (elapsed > lastVerseParts[lastVersePartIndex + 1][1]) {
+              // Need to go to next part
+              lastVersePartIndex++
+              verseTextText = lastVerseText = lastVerseParts[lastVersePartIndex][0]
+            } else {
+              // Remain on the same part
+              verseTextText = lastVerseText
+            }
           }
-
-          verseTextText = this.getVerseText(verse, getApp()._options.globalData.time.getTime())
-          if (lastVerseText.localeCompare(verseTextText) === 0) return
         } else {
+          // Still Downloading
           verse = getApp()._options.globalData.player.curDownloadedVerse
           if (verse === undefined) return
           verseTextText = this.getDownloadLabel(verse)
@@ -192,25 +233,6 @@ Page(
       })
 
       this.state.player.doAction(this.getServiceParam(START))
-    },
-    onPause () {
-      logger.log('page on pause invoke')
-    },
-    onResume () {
-      logger.log('page on resume invoke')
-      replace({ url: `${thisPage}` })
-    },
-    onDestroy () {
-      logger.log('page on destroy invoke')
-      delete this.globalData.player.verseStartTime
-      delete this.globalData.player.curDownloadedVerse
-      setPlayerInfo(this.globalData.player)
-      this.state.player.doAction(this.getServiceParam(EXIT))
-
-      if (this.state.interval) {
-        clearInterval(this.state.interval)
-      }
     }
-
   })
 )

@@ -5,7 +5,9 @@ import * as appServiceMgr from '@zos/app-service'
 import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
 import { getRecitation, hasVerseText } from '../libs/storage/localStorage'
 import { NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
+import { Time } from '@zos/sensor'
 
+const time = new Time()
 const VOLUME_INCREMENT = 10
 const thisService = 'app-service/player_service'
 const logger = log.getLogger('player.service')
@@ -26,7 +28,6 @@ export class QuranPlayer {
   #player
   #curPlayVerse
   #curDownVerse
-  #onHold
   #relativePath
   #basePage
   #recitation
@@ -51,7 +52,7 @@ export class QuranPlayer {
         this.#reset()
         getApp()._options.globalData.player.type = result.type
         this.#playSurahOrJuz(parseInt(result.number))
-        if (!isNaN(result.verse)) this.#curPlayVerse = this.#verses.indexOf(result.verse) - 1
+        if (result.verse !== undefined) this.#curPlayVerse = this.#verses.indexOf(result.verse) - 1
         break
       case EXIT:
         this.#doExit()
@@ -87,7 +88,7 @@ export class QuranPlayer {
   updateStatus (curDownVerse) {
     this.#curDownVerse = curDownVerse
     getApp()._options.globalData.player.curDownloadedVerse = this.#verses[curDownVerse]
-    if (curDownVerse - this.#curPlayVerse > PLAYER_BUFFER_SIZE) {
+    if (curDownVerse - this.#curPlayVerse > PLAYER_BUFFER_SIZE || curDownVerse === this.#verses.length) {
       this.#playVerse()
     }
   }
@@ -117,7 +118,6 @@ export class QuranPlayer {
 
     this.#curPlayVerse = -1
     this.#curDownVerse = -1
-    this.#onHold = true
     this.#recitation = getRecitation().split(',')[1]
 
     if (partialReset) return
@@ -167,9 +167,13 @@ export class QuranPlayer {
   }
 
   #playVerse () {
-    if (!this.#onHold) return
+    if (this.#player &&
+      (this.#player.getStatus() === (this.#player.state.STARTED || 5) ||
+        this.#player.getStatus() === (this.#player.state.PREPARED || 3) ||
+        this.#player.getStatus() === (this.#player.state.PREPARING || 2))) {
+      return
+    }
 
-    this.#onHold = false
     this.#curPlayVerse++
 
     if (this.#curPlayVerse >= this.#verses.length) {
@@ -182,9 +186,8 @@ export class QuranPlayer {
       return
     }
 
-    if (this.#curPlayVerse > this.#curDownVerse) {
+    if (this.#curPlayVerse >= this.#curDownVerse) {
       this.#curPlayVerse--
-      this.#onHold = true
       return
     }
 
@@ -194,7 +197,7 @@ export class QuranPlayer {
       const that = this
       player.addEventListener(player.event.PREPARE, (result) => {
         if (result) {
-          getApp()._options.globalData.player.verseStartTime = getApp()._options.globalData.time.getTime()
+          getApp()._options.globalData.player.verseStartTime = time.getTime()
           getApp()._options.globalData.player.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
@@ -204,7 +207,6 @@ export class QuranPlayer {
       })
 
       player.addEventListener(player.event.COMPLETE, (result) => {
-        that.#onHold = true
         that.#playVerse()
       })
 

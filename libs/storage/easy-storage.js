@@ -271,11 +271,18 @@ export class EasyFlashStorage { // @add 1.4.0
     }
 
     // @upd 1.X.X
+    let file_content
     try {
-      const file_content = readFile(`${this.#directory}/${idx}`)
-      return JSON.parse(file_content)
+      file_content = readFile(`${this.#directory}/${idx}`)
     } catch (error) {
       debugLog(1, 'Error accessing or parsing file:', error)
+      return undefined
+    }
+
+    try {
+      return JSON.parse(file_content)
+    } catch (error) {
+      debugLog(1, 'Error parsing file content:' + file_content)
       return undefined
     }
   }
@@ -1612,7 +1619,7 @@ function writeFile (filename, data) {
         encoding: 'utf8' // specify encoding method for string data
       }
     })
-    debugLog(3, `writeFileSync success, data written to '${filename}'`)
+    debugLog(3, `writeFileSync success, data written to '${filename}' ${data}`)
   } catch (error) {
     debugLog(1, `writeFileSync failed for '${filename}':`, error)
   }

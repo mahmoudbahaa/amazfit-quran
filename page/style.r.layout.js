@@ -27,8 +27,8 @@ export const ROW_STYLE = {
   iconText: '',
   iconAlignH: hmUI.align.CENTER_H,
   iconAlignV: hmUI.align.CENTER_V,
-  iconColor: BLACK,
-  alignH: hmUI.align.CENTER_H
+  iconColor: BLACK
+  // alignH: hmUI.align.CENTER_H
 }
 
 export const MAIN_BUTTON_TEXT_SIZE = px(32)
@@ -95,7 +95,7 @@ export const VERSE_PLAYER_TEXT = {
   y: px(40),
   w: SCREEN_WIDTH - PLAYER_BTN_W * 2 - PLAYER_BTN_X * 2,
   h: SCREEN_HEIGHT - px(80),
-  text_size: px(48),
+  text_size: px(32),
   text_style: hmUI.text_style.WRAP,
   align_h: hmUI.align.CENTER_H,
   align_v: hmUI.align.CENTER_V,

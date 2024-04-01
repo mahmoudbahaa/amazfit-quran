@@ -4,16 +4,17 @@ import { BasePage } from '@zeppos/zml/base-page'
 import { setWakeUpRelaunch } from '@zos/display'
 import {
   getLang,
-  setChapters,
+  setChapters, setEnChapters,
   setLang,
   setRecitation
 } from '../libs/storage/localStorage.js'
 import { DEVICE_LANG } from '../libs/i18n/lang'
 import { quranComApiModule } from '../components/quran-com-api-module'
+import { unDefChapters } from './data/chapters'
 
 const logger = log.getLogger('start.page')
 
-export function SelectPage (extraOptions) {
+export function StartPage (extraOptions) {
   return BasePage({
     onInit () {
       setWakeUpRelaunch({
@@ -32,20 +33,35 @@ export function SelectPage (extraOptions) {
       console.log(JSON.stringify(lastLangCode))
       const { lang } = settings
       console.log(JSON.stringify(settings))
-      const langCode = lang ? lang.split(',')[1] : DEVICE_LANG()
+      const langCode = lang ? lang.split(',')[1] : DEVICE_LANG().split('-')[0]
       console.log(JSON.stringify(langCode))
       getApp()._options.globalData.langCode = langCode
       const caller = this
       if (lastLangCode !== langCode) {
-        this.onGettingChapters()
-        quranComApiModule.getChapters(this, langCode, (theChapters) => {
+        if (langCode === 'en' || langCode === 'ar') {
           setLang(langCode)
-          setChapters(theChapters)
-          caller.createWidgets()
-        })
+          setEnChapters()
+          this.createWidgets()
+        } else {
+          this.onGettingChapters()
+          quranComApiModule.getChapters(this, langCode, (theChapters) => {
+            setLang(langCode)
+            setChapters(theChapters.map(chapter => {
+              return {
+                name_simple: chapter.name_simple,
+                name_complex: chapter.name_complex,
+                name_arabic: chapter.name_arabic,
+                translated_name: chapter.translated_name.name
+              }
+            }))
+            caller.createWidgets()
+          })
+        }
       } else {
         this.createWidgets()
       }
+
+      unDefChapters()
     },
 
     getSideAppSettings () {

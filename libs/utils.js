@@ -1,17 +1,26 @@
-/* global */
-import { replace } from '@zos/router'
-import * as appService from '@zos/app-service'
+/* global getApp */
+import { push } from '@zos/router'
 import { statSync } from '@zos/fs'
-import { MAX_WORDS_PER_PAGE, NUM_VERSES, STOP_LABELS } from './constants'
-import { JUZS } from '../page/test-data/juzs'
+import { NUM_VERSES } from './constants'
+import { getVerseMapping } from '../page/data/juzs'
+import { getPlayerInfo } from './storage/localStorage'
 
-export function selectPage () {
-  const serviceFile = 'app-service/player_service'
-  if (appService.getAllAppServices().includes(serviceFile)) {
-    replace({
-      url: 'page/player'
+export function restorePlayer () {
+  const playerInfo = getPlayerInfo()
+  console.log('player info=' + playerInfo)
+  if (playerInfo === undefined) return false
+
+  getApp()._options.globalData.player = playerInfo
+  if (playerInfo.curVerse !== undefined) {
+    push({
+      url: 'page/player',
+      params: `type=${playerInfo.type}&number=${playerInfo.number}&verse=${playerInfo.curVerse}`
     })
+
+    return true
   }
+
+  return false
 }
 
 export function getChapterVerses (surahNumber) {
@@ -24,7 +33,7 @@ export function getChapterVerses (surahNumber) {
 }
 
 export function getJuzVerses (juzNumber) {
-  const verseMapping = JUZS[juzNumber - 1].verse_mapping
+  const verseMapping = getVerseMapping(juzNumber - 1)
   const verses = []
   const surahes = []
   for (const surah in verseMapping) {

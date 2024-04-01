@@ -58,9 +58,9 @@ export class BaseAboutScreen {
       x: 0,
       y: this.posY,
       w: SCREEN_WIDTH,
-      h: this.fontSize,
+      h: this.fontSize * 1.5,
       text: '',
-      text_size: this.fontSize,
+      text_size: this.fontSize * 1.25,
       align_h: hmUI.align.CENTER_H,
       align_v: hmUI.align.CENTER_V,
       color: STATUS_COLOR_TXT

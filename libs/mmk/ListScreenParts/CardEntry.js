@@ -16,9 +16,9 @@ export class CardEntry {
   }
 
   _setCallback () {
-    if (!this.config.callback) return
-
     this.mod_callback = () => {
+      if (!this.config.callback) return
+
       this.bg.setProperty(hmUI.prop.COLOR, MAIN_COLOR)
       setTimeout(() => {
         this.bg.setProperty(hmUI.prop.COLOR, this.config.color)

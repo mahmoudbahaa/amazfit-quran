@@ -6,10 +6,11 @@ export const NUM_VERSES = [7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 1
   20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11,
   8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6]
 
-export const PLAYER_BUFFER_SIZE = 4
-export const MAX_WORDS_PER_PAGE = 30
-export const MAX_ERROR_RETRIES = 10
-export const ERROR_RETRY_AFTER = 5000
+export const PLAYER_BUFFER_SIZE = 3
+export const MAX_WORDS_PER_PAGE = 10
+export const MAX_CHARS_PER_PAGE = 150
+export const MAX_ERROR_RETRIES = 3
+export const ERROR_RETRY_AFTER = 2000
 export const NUM_PAGES = 4 // Use 4 or more (3 or less cause memory issues)
 
 export const STOP_LABELS = ['ۗ', 'ۖ', 'ۚ', 'ۘ']

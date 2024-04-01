@@ -1,17 +1,21 @@
-/* global Page */
+/* global getApp, Page */
 import { px } from '@zos/utils'
 import { BaseAboutScreen } from '../libs/mmk/BaseAboutScreen'
 import { _, DEVICE_LANG, isRtlLang } from '../libs/i18n/lang'
-import { SelectPage } from './start'
+import { StartPage } from './start'
 import { getRows } from '../components/chaptersList'
 import hmUI from '@zos/ui'
+import { SCREEN_MARGIN_X, SCREEN_WIDTH } from '../libs/mmk/UiParams'
+import { createSwitch } from '../components/switch'
+import { getAutoStart, setAutoStart } from '../libs/storage/localStorage'
+import { push } from '@zos/router'
 
-const majorVersion = 0
-const minorVersion = 1
+const majorVersion = 1
+const minorVersion = 0
 
 const lang = DEVICE_LANG()
 Page(
-  SelectPage({
+  StartPage({
     state: {
       about: undefined
     },
@@ -24,15 +28,20 @@ Page(
       this.state.about.updateStatus('Setting up Rows...')
       setTimeout(() => {
         getRows()
-        this.state.about.ready()
+        this.state.about.ready(true)
       }, 50)
     },
 
     build () {
       this.state.about = new AboutScreen()
       this.state.about.start()
-      this.state.about.updateStatus('Getting Settings...')
-      setTimeout(() => this.getSideAppSettings(), 50)
+      if (getApp()._options.globalData.appStarting) {
+        getApp()._options.globalData.appStarting = false
+        this.state.about.updateStatus('Getting Settings...')
+        setTimeout(() => this.getSideAppSettings(), 50)
+      } else {
+        this.state.about.ready()
+      }
     }
   })
 )
@@ -44,7 +53,7 @@ class AboutScreen extends BaseAboutScreen {
     this.appName = `${_('Quran App', lang)}`
     this.version = `(${_(majorVersion, lang)}${_('.', lang)}${_(minorVersion, lang)})`
     this.infoRows = [
-      [_('Mahmoud Bahaa', lang), _('Developer', lang)]
+      // [_('Mahmoud Bahaa', lang), _('Developer', lang)]
       // [_('Nisreen Ali', lang), _('Designer', lang)]
     ]
     this.infoHeaderWidth = px(170)
@@ -77,8 +86,35 @@ class AboutScreen extends BaseAboutScreen {
     this.status.setProperty(hmUI.prop.TEXT, status)
   }
 
-  ready () {
+  start () {
+    super.start()
+    hmUI.createWidget(hmUI.widget.TEXT, {
+      x: 0,
+      y: this.posY,
+      w: SCREEN_WIDTH / 2 - SCREEN_MARGIN_X / 4,
+      h: px(56),
+      align_h: this.rtl ? hmUI.align.LEFT : hmUI.align.RIGHT,
+      align_v: hmUI.align.CENTER_V,
+      text: _('Auto Start'),
+      text_size: this.fontSize,
+      color: 0xFFFFFF
+    })
+    this.autoStart = createSwitch(
+      SCREEN_WIDTH / 2 + SCREEN_MARGIN_X / 4,
+      this.posY,
+      !!getAutoStart(),
+      (slideSwitch, checked) => {
+        setAutoStart(checked)
+      })
+  }
+
+  ready (autoStart = false) {
     this.status.setProperty(hmUI.prop.VISIBLE, false)
     this.next.setProperty(hmUI.prop.VISIBLE, true)
+    if (autoStart && getAutoStart()) {
+      push({
+        url: this.nextPage
+      })
+    }
   }
 }

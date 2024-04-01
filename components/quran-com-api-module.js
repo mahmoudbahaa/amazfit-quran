@@ -1,4 +1,5 @@
 const baseUrl = 'https://api.quran.com/api/v4/'
+
 export const quranComApiModule = {
   get (caller, onSuccess, onError, url, resourceName, attrsToDelete = undefined) {
     caller.httpRequest({
@@ -88,66 +89,58 @@ export const quranComApiModule = {
   },
 
   async getVersesAudioPaths (caller, recitationId, onSuccess, onError) {
-    const url = `${baseUrl}quran/recitations/${recitationId}?chapter_number=1`
-    caller.log(url)
     await this.getByService(
       caller,
       onSuccess,
       onError,
-      url,
+      `${baseUrl}quran/recitations/${recitationId}?chapter_number=1`,
       'audio_files'
     )
   },
 
   async getVerseText (caller, verse, recitationId, onSuccess, onError) {
-    const url = `${baseUrl}verses/by_key/${verse}?audio=${recitationId}&fields=text_imlaei`
     await this.getByService(
       caller,
       onSuccess,
       onError,
-      url,
+      `${baseUrl}verses/by_key/${verse}?audio=${recitationId}&fields=text_imlaei`,
       'verse'
     )
   },
 
   transferVerse (caller, verse, onSuccess, onError) {
-    const fileName = this.getFileName(verse)
-    const path = `data://download/${fileName}`
-    const task = caller.sendFile(path, {
-      type: 'mp3',
-      fileName: path
-    })
-
-    let sendResult = true
+    const task = caller.sendFile(`data://download/${this.getFileName(verse)}`)
+    let started = false
     task.on('change', (e) => {
-      if (e.data.readyState === 'transferred') {
-        if (sendResult) {
-          sendResult = false
-          onSuccess({ status: 'success' })
+      switch (e.data.readyState) {
+        case 'transferring': {
+          started = true
+          break
         }
-      } else if (e.data.readyState === 'error') {
-        if (sendResult) {
-          sendResult = false
-          onError({ status: 'error' })
+        case 'transferred': {
+          onSuccess({ status: 'success' })
+          break
+        }
+        case 'error': {
+          onError({ status: 'error', error: e, started })
+          break
         }
       }
+    })
+
+    task.on('complete', (e) => {
+      caller.log('File-transfer = ' + JSON.stringify(e))
     })
   },
 
   getFileName (verse) {
-    const surahNumber = verse.split(':')[0]
-    const verseNumber = verse.split(':')[1]
-    return `${surahNumber.padStart(3, '0') + verseNumber.padStart(3, '0')}.mp3`
+    return `${verse.split(':')[0].padStart(3, '0') + verse.split(':')[1].padStart(3, '0')}.mp3`
   },
 
   downloadVerse (caller, relativePath, verse, onSuccess, onError) {
-    const fileName = this.getFileName(verse)
-    const url = `https://verses.quran.com/${relativePath}${fileName}`
-
-    caller.log('download from=>' + url)
-    const task = caller.download(url, {
+    const task = caller.download(`https://verses.quran.com/${relativePath}${this.getFileName(verse)}`, {
       headers: {},
-      timeout: 600000
+      timeout: 60000
     })
 
     if (!task) {
@@ -156,11 +149,11 @@ export const quranComApiModule = {
     }
 
     task.onSuccess = (data) => {
-      onSuccess({ status: 'success' })
+      onSuccess({ status: 'success', data })
     }
 
     task.onFail = (data) => {
-      onError({ message: 'download fail' })
+      onError({ message: 'download fail', error: data })
     }
   }
 }
