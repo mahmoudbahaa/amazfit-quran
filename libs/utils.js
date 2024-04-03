@@ -39,13 +39,14 @@ export function getJuzVerses (juzNumber) {
     surahes.push(parseInt(surah))
   }
 
+  // Just in case
   surahes.sort()
   surahes.forEach((surah) => {
     const verseSingleMapping = verseMapping[surah + '']
-    const start = verseSingleMapping.split('-')[0]
-    const end = verseSingleMapping.split('-')[1]
+    const start = parseInt(verseSingleMapping.split('-')[0])
+    const end = parseInt(verseSingleMapping.split('-')[1])
     for (let i = start; i <= end; i++) {
-      verses.push(surah + ':' + i)
+      verses.push(`${surah}:${i}`)
     }
   })
 

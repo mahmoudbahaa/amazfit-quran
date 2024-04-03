@@ -44,6 +44,7 @@ AppSideService(
           })
 
           if (this.state.downloader !== undefined) { this.state.downloader.stop() }
+          this.state.downloader = undefined
           break
         }
         case 'get.settings': {

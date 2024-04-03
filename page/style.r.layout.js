@@ -57,19 +57,15 @@ export const VIEW_CONTAINER = {
   h: SCREEN_HEIGHT
 }
 
-export const SURAH_PLAYER_LABEL = {
-  x: px(40),
+export const CLEAR_DISPLAY_ICON = {
+  x: SCREEN_HEIGHT / 2 + px(50),
   y: px(0),
-  w: SCREEN_WIDTH - px(40) * 2,
-  h: px(40),
-  text_size: px(32),
-  align_h: hmUI.align.CENTER_H,
-  color: 0xffffff
+  src: 'clear.png'
 }
 
 export const VERSE_PLAYER_LABEL = {
   x: px(40),
-  y: SCREEN_HEIGHT - px(50),
+  y: SCREEN_HEIGHT - px(65),
   w: SCREEN_WIDTH - px(40) * 2,
   h: px(40),
   text_size: px(32),

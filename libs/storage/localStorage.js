@@ -97,6 +97,14 @@ export function setChaptersListRow (i, row) {
   setValue('chaptersListRow_' + i, row)
 }
 
+export function getWithoutPunctuation () {
+  return getValue('withoutPunctuation')
+}
+
+export function setWithoutPunctuation (withoutPunctuation) {
+  setValue('withoutPunctuation', withoutPunctuation)
+}
+
 export function getAutoStart () {
   return getValue('autoStart')
 }
@@ -124,7 +132,7 @@ function readVerseFile (verse) {
     let i = fileId * NUM_VERSES_PER_FILE
     FS.readAsset(`verses/verses_${fileId}`).split('\n\n\n').forEach(file => {
       const path2 = `verses/${v(verseIds[i++])}`
-      FS.writeFile(path2, file)
+      FS.writeFile(path2, file + ' ۝')
     })
 
     return FS.readFile(path).split('\n')
@@ -132,8 +140,7 @@ function readVerseFile (verse) {
 }
 export function getVerseText (verse) {
   const lines = readVerseFile(verse)
-  if (lines.length === 1) return lines
-  lines.shift()
+  if (lines.length !== 1) lines.shift()
   return lines
 }
 

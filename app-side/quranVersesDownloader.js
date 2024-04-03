@@ -67,7 +67,6 @@ export class QuranVersesDownloader {
     if (this.#checkStop()) return
 
     const verse = this.#verses[this.#curDownVerse]
-    this.#logger.log('Transferring verse: ' + verse)
     quranComApiModule.transferVerse(
       this.#service,
       verse,
@@ -145,7 +144,6 @@ export class QuranVersesDownloader {
     }
 
     const verse = this.#verses[this.#curDownVerse]
-    this.#logger.log('Downloading verse: ' + verse)
     if (this.#textExists[this.#curDownVerse]) {
       setTimeout(() => this.#downloadVersesAudio(), TIME_OUT_DURATION)
       return

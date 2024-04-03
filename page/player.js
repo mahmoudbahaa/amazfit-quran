@@ -17,22 +17,33 @@ import {
   INCREASE_VOLUME,
   QuranPlayer
 } from '../components/quranPlayer'
-import { getVerseInfo, getVerseText, setPlayerInfo } from '../libs/storage/localStorage.js'
+import {
+  getVerseInfo,
+  getVerseText,
+  getWithoutPunctuation,
+  setPlayerInfo,
+  setWithoutPunctuation
+} from '../libs/storage/localStorage.js'
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { NUM_VERSES } from '../libs/constants'
 import { _ } from '../libs/i18n/lang'
 import { Time } from '@zos/sensor'
+import { BasePage } from '@zeppos/zml/base-page'
+import { createSwitch } from '../components/switch'
+import { removePunctuation } from '../libs/i18n/arabicUtils'
+import { CLEAR_DISPLAY_ICON } from './style.r.layout.js'
 
 const time = new Time()
 const logger = Logger.getLogger('player page')
 
-Page({
+Page(BasePage({
   state: {
     interval: undefined,
     type: undefined,
     number: -1,
     verse: undefined,
-    verseInfo: {}
+    verseInfo: {},
+    withoutPunctuation: false
   },
 
   onInit (paramsString) {
@@ -79,16 +90,12 @@ Page({
     return `action=${action}${extraParams}`
   },
 
-  getSurahLabel (verseInfo) {
-    return `${_('Surah')}: ${_(verseInfo.split(':')[0].toString())}`
-  },
-
   getDownloadLabel (verse) {
     return `${_('Downloading')} ${_('Verse')} ${verse ? this.getVerseLabel(verse) : '...'}`
   },
 
-  getVerseLabel (verseInfo) {
-    return `${_(verseInfo.split(':')[1].padStart(3, '0'))}/${_(NUM_VERSES[parseInt(verseInfo.split(':')[0]) - 1].toString().padStart(3, '0'))}`
+  getVerseLabel (v) {
+    return `${_(v.split(':')[0])}:${_(v.split(':')[1])}/${_(v.split(':')[0])}:${_(NUM_VERSES[parseInt(v.split(':')[0]) - 1])}`
   },
 
   getVerseTextParts (verse) {
@@ -99,8 +106,10 @@ Page({
   },
 
   build () {
-    const surahInfo = hmUI.createWidget(hmUI.widget.TEXT, {
-      ...Styles.SURAH_PLAYER_LABEL
+    this.state.withoutPunctuation = getWithoutPunctuation()
+    createSwitch(SCREEN_WIDTH / 2 - px(50), px(0), !this.state.withoutPunctuation, (slideSwitch, checked) => {
+      this.state.withoutPunctuation = !checked
+      setWithoutPunctuation(this.state.withoutPunctuation)
     })
 
     // const verseBg =
@@ -118,6 +127,21 @@ Page({
       text: ''
     })
 
+    const clearAyaDisplayIcon = hmUI.createWidget(hmUI.widget.IMG, {
+      ...Styles.CLEAR_DISPLAY_ICON
+    })
+
+    clearAyaDisplayIcon.addEventListener(hmUI.event.CLICK_UP, () => {
+      if (this.state.interval) {
+        verseInfo.setProperty(hmUI.prop.TEXT, '')
+        verseText.setProperty(hmUI.prop.TEXT, '')
+        clearInterval(this.state.interval)
+        this.state.interval = undefined
+      } else {
+        this.state.interval = setInterval(() => updater(this), 20)
+      }
+    })
+
     let verse
     let verseTextText
     let lastVerse
@@ -125,13 +149,13 @@ Page({
     let lastVerseInfo
     let lastVersePartIndex
     let elapsed
-    this.state.interval = setInterval(() => {
+    const updater = (that) => {
       verse = getApp()._options.globalData.playerInfo.curVerse
       if (verse !== undefined) {
         // A verse is being played
         if (lastVerse !== verse) {
           // A new verse is played
-          lastVerseInfo = this.getVerseTextParts(verse)
+          lastVerseInfo = that.getVerseTextParts(verse)
           lastVersePartIndex = 0
           verseTextText = lastVerseText = lastVerseInfo.texts[0]
           lastVerse = verse
@@ -150,18 +174,20 @@ Page({
             verseTextText = lastVerseText
           }
         }
+
+        verseTextText = that.state.withoutPunctuation ? removePunctuation(verseTextText) : verseTextText
       } else {
         // Still Downloading
         verse = getApp()._options.globalData.playerInfo.curDownloadedVerse
         if (verse === undefined) return
-        verseTextText = this.getDownloadLabel(verse)
-        return
+        verseTextText = that.getDownloadLabel(verse)
       }
 
-      surahInfo.setProperty(hmUI.prop.TEXT, this.getSurahLabel(verse))
-      verseInfo.setProperty(hmUI.prop.TEXT, this.getVerseLabel(verse))
+      verseInfo.setProperty(hmUI.prop.TEXT, that.getVerseLabel(verse))
       verseText.setProperty(hmUI.prop.TEXT, verseTextText)
-    }, 20)
+    }
+
+    this.state.interval = setInterval(() => updater(this), 20)
 
     const playerButtons = [
       { src: 'volume-dec.png', action: DECREASE_VOLUME, left: true },
@@ -213,3 +239,4 @@ Page({
     getApp()._options.globalData.player.doAction(this.getServiceParam(START))
   }
 })
+)
