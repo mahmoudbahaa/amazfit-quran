@@ -4,7 +4,7 @@ import { BaseApp } from '@zeppos/zml/base-app'
 App(
   BaseApp({
     globalData: {
-      player: {
+      playerInfo: {
         type: undefined,
         number: undefined,
         curVerse: undefined,
@@ -18,7 +18,9 @@ App(
       continue: true,
       errorCount: 0,
       restorePlayer: true,
-      appStarting: true
+      appStarting: true,
+      basePage: undefined,
+      player: undefined
     },
     onCreate () {
       console.log('app on create invoke')

@@ -3,7 +3,7 @@ import { log } from '@zos/utils'
 import { create, id } from '@zos/media'
 import * as appServiceMgr from '@zos/app-service'
 import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
-import { getRecitation, hasVerseText } from '../libs/storage/localStorage'
+import { getRecitation, hasVerseInfo } from '../libs/storage/localStorage'
 import { NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
 import { Time } from '@zos/sensor'
 
@@ -29,12 +29,10 @@ export class QuranPlayer {
   #curPlayVerse
   #curDownVerse
   #relativePath
-  #basePage
   #recitation
 
-  constructor (basePage) {
+  constructor () {
     this.#reset()
-    this.#basePage = basePage
   }
 
   doAction (e) {
@@ -50,9 +48,8 @@ export class QuranPlayer {
     switch (result.action) {
       case START:
         this.#reset()
-        getApp()._options.globalData.player.type = result.type
-        this.#playSurahOrJuz(parseInt(result.number))
-        if (result.verse !== undefined) this.#curPlayVerse = this.#verses.indexOf(result.verse) - 1
+        getApp()._options.globalData.playerInfo.type = result.type
+        this.#playSurahOrJuz(parseInt(result.number), result.verse)
         break
       case EXIT:
         this.#doExit()
@@ -71,10 +68,10 @@ export class QuranPlayer {
         this.#player.stop()
         break
       case PREVIOUS:
-        this.#playSurahOrJuz(getApp()._options.globalData.player.number - 1)
+        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number - 1)
         break
       case NEXT:
-        this.#playSurahOrJuz(getApp()._options.globalData.player.number + 1)
+        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number + 1)
         break
       case DECREASE_VOLUME:
         this.#player.setVolume(this.#player.getVolume() - VOLUME_INCREMENT)
@@ -87,7 +84,7 @@ export class QuranPlayer {
 
   updateStatus (curDownVerse) {
     this.#curDownVerse = curDownVerse
-    getApp()._options.globalData.player.curDownloadedVerse = this.#verses[curDownVerse]
+    getApp()._options.globalData.playerInfo.curDownloadedVerse = this.#verses[curDownVerse]
     if (curDownVerse - this.#curPlayVerse > PLAYER_BUFFER_SIZE || curDownVerse === this.#verses.length) {
       this.#playVerse()
     }
@@ -100,10 +97,12 @@ export class QuranPlayer {
       this.#player.release()
     }
 
-    this.#basePage.request({
-      method: 'download.stop',
-      params: ''
-    })
+    if (getApp()._options.globalData.basePage) {
+      getApp()._options.globalData.basePage.request({
+        method: 'download.stop',
+        params: ''
+      })
+    }
 
     if (stopService) {
       appServiceMgr.stop({
@@ -113,8 +112,8 @@ export class QuranPlayer {
   }
 
   #reset (partialReset = false) {
-    getApp()._options.globalData.player.curVerse = undefined
-    getApp()._options.globalData.player.curDownloadedVerse = undefined
+    getApp()._options.globalData.playerInfo.curVerse = undefined
+    getApp()._options.globalData.playerInfo.curDownloadedVerse = undefined
 
     this.#curPlayVerse = -1
     this.#curDownVerse = -1
@@ -122,13 +121,13 @@ export class QuranPlayer {
 
     if (partialReset) return
 
-    getApp()._options.globalData.player.type = undefined
-    getApp()._options.globalData.player.number = undefined
+    getApp()._options.globalData.playerInfo.type = undefined
+    getApp()._options.globalData.playerInfo.number = undefined
     this.#relativePath = undefined
   }
 
-  #playSurahOrJuz (number) {
-    switch (getApp()._options.globalData.player.type) {
+  #playSurahOrJuz (number, startFrom) {
+    switch (getApp()._options.globalData.playerInfo.type) {
       case PLAYER_TYPE_JUZ: {
         if (number > NUM_JUZS || number < 1) return
         this.#verses = getJuzVerses(number)
@@ -142,19 +141,21 @@ export class QuranPlayer {
     }
 
     this.#reset(true)
-    getApp()._options.globalData.player.number = number
+    getApp()._options.globalData.playerInfo.number = number
     if (this.#player !== undefined) {
       this.#player.stop()
     }
 
     const audioExists = this.#verses.map((verse) => checkVerseExists(verse))
-    const textExists = this.#verses.map((verse) => hasVerseText(verse))
+    const textExists = this.#verses.map((verse) => hasVerseInfo(verse))
     const recitation = getRecitation().split(',')[1]
 
-    this.#basePage.request({
+    this.#curPlayVerse = startFrom === undefined ? -1 : (this.#verses.indexOf(startFrom) - 1)
+    getApp()._options.globalData.basePage.request({
       method: 'download.ayas',
       params: {
         verses: this.#verses,
+        start: this.#curPlayVerse,
         audioExists,
         textExists,
         recitation
@@ -178,7 +179,7 @@ export class QuranPlayer {
 
     if (this.#curPlayVerse >= this.#verses.length) {
       if (getApp()._options.globalData.continue) {
-        this.#playSurahOrJuz(getApp()._options.globalData.player.number + 1)
+        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number + 1)
       } else {
         this.#doExit(false)
       }
@@ -197,8 +198,8 @@ export class QuranPlayer {
       const that = this
       player.addEventListener(player.event.PREPARE, (result) => {
         if (result) {
-          getApp()._options.globalData.player.verseStartTime = time.getTime()
-          getApp()._options.globalData.player.curVerse = this.#verses[that.#curPlayVerse]
+          getApp()._options.globalData.playerInfo.verseStartTime = time.getTime()
+          getApp()._options.globalData.playerInfo.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
           logger.log(`=== prepare fail ===${JSON.stringify(result)}`)

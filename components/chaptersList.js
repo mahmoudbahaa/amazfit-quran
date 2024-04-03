@@ -1,5 +1,5 @@
 /* global getApp */
-import { getChapter, getChaptersListRows, setChaptersListRows, useSimpleSurahName } from '../libs/storage/localStorage'
+import { getChapter, getChaptersListRow, setChaptersListRow, useSimpleSurahName } from '../libs/storage/localStorage'
 import { getVerseMapping } from '../page/data/juzs'
 import { _, isRtlLang } from '../libs/i18n/lang'
 import {
@@ -13,23 +13,19 @@ import {
 import { push } from '@zos/router'
 import { ListScreen } from '../libs/mmk/ListScreen'
 import { NUM_JUZS, NUM_PAGES } from '../libs/constants'
-import { deleteLoadingWidget } from './loadingWidget'
 import hmUI from '@zos/ui'
 import { PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from './quranPlayer'
 
 const playerPage = 'page/player'
-
+const NUM_ROWS = 144
+const NUM_PER_PAGE = Math.ceil(NUM_ROWS / NUM_PAGES)
 export class ChaptersScreen extends ListScreen {
+  #pageNumber
+  #start
+  #end
+
   constructor () {
     super(isRtlLang(getApp()._options.globalData.langCode))
-    this.rows = this.#getRows()
-    const numPerPage = Math.floor(this.rows.length / NUM_PAGES)
-    this.boundaries = Array.from({ length: NUM_PAGES + 1 })
-    this.boundaries[0] = 0
-    this.boundaries[NUM_PAGES] = this.rows.length
-    for (let i = 1; i < NUM_PAGES; i++) {
-      this.boundaries[i] = i * numPerPage
-    }
   }
 
   start () {
@@ -37,50 +33,39 @@ export class ChaptersScreen extends ListScreen {
   }
 
   #render () {
-    const pageNumber = getApp()._options.globalData.pageNumber
-    const start = this.boundaries[pageNumber]
-    const end = this.boundaries[pageNumber + 1]
+    this.#pageNumber = getApp()._options.globalData.pageNumber
+    this.#start = this.#pageNumber * NUM_PER_PAGE
+    this.#end = this.#start + pageLength(this.#pageNumber)
     let pos = 0
-    if (start > 0) {
-      const prev = this.#addNextPreviousButton('Previous', pageNumber - 1)
-      this.replaceOrCreateRow(prev, pos++)
+    if (this.#pageNumber > 0) {
+      this.replaceOrCreateRow(this.#addNextPreviousButton('Previous', this.#pageNumber - 1), pos++)
     }
 
-    this.#renderRow(start, pos, end, pageNumber)
-  }
-
-  #renderRow (idx, pos, end, pageNumber) {
-    if (idx >= end) {
-      if (end < this.rows.length) {
-        const next = this.#addNextPreviousButton('Next', pageNumber + 1)
-        this.replaceOrCreateRow(next, pos++)
-      }
-
-      this.replaceOrCreateRow({ }, pos++)
-      this.finalize(pos, getApp()._options.globalData.scrollTop)
-      deleteLoadingWidget()
-      return
+    for (let i = this.#start; i < this.#end; i++) {
+      this.replaceOrCreateRow(this.#getRow(i), pos++)
     }
 
-    this.replaceOrCreateRow(this.rows[idx], pos)
-    setTimeout(() => this.#renderRow(idx + 1, pos + 1, end, pageNumber), 1)
+    if (this.#pageNumber < (NUM_PAGES - 1)) {
+      this.replaceOrCreateRow(this.#addNextPreviousButton('Next', this.#pageNumber + 1), pos++)
+    }
+
+    this.replaceOrCreateRow({ }, pos++)
+    this.finalize(pos, getApp()._options.globalData.scrollTop)
   }
 
-  #getRows () {
-    const rows = getRows()
-    rows.forEach(row => {
-      row.card = {
-        callback: () => {
-          getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
-          push({
-            url: playerPage,
-            params: `type=${row.type}&number=${row.number}`
-          })
-        }
+  #getRow (rowNumber) {
+    const row = getRow(rowNumber)
+    row.card = {
+      callback: () => {
+        getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
+        push({
+          url: playerPage,
+          params: `type=${row.type}&number=${row.number}`
+        })
       }
-    })
+    }
 
-    return rows
+    return row
   }
 
   #addNextPreviousButton (label, pageNumber) {
@@ -100,15 +85,15 @@ export class ChaptersScreen extends ListScreen {
   }
 }
 
-export function getRows () {
-  console.log('Getting rows')
-  let rows = getChaptersListRows()
-  if (rows !== undefined) {
-    console.log('Got Rows')
-    return rows
-  }
+function pageLength (pageNumber) {
+  return pageNumber === (NUM_PAGES - 1) ? (((NUM_ROWS - 1) % NUM_PER_PAGE) + 1) : NUM_PER_PAGE
+}
 
-  rows = []
+export function getRow (rowNumber) {
+  const row = getChaptersListRow(rowNumber)
+  if (row !== undefined) return row
+
+  const rows = []
   const ar = getApp()._options.globalData.langCode === 'ar'
   const useSimpleNames = useSimpleSurahName() === 'true'
   const nameKey = ar ? 'name_arabic' : useSimpleNames ? 'name_simple' : 'name_complex'
@@ -127,10 +112,12 @@ export function getRows () {
     }
   }
 
-  setChaptersListRows(rows)
-  console.log('Got Rows')
+  for (let i = 0; i < rows.length; i++) {
+    setChaptersListRow(i, rows[i])
+  }
 
-  return rows
+  console.log('Initialized Rows')
+  return rows[rowNumber]
 }
 
 function addJuzRow (juzNumber) {

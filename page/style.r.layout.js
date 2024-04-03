@@ -90,14 +90,16 @@ export const PLAYER_BTN = {
   h: -1
 }
 
+const VERSE_PLAYER_TEXT_HEIGHT = 344 // 343
+const VERSE_PLAYER_TEXT_WIDTH = 316 // 315 // Math.ceil(Math.sqrt(2) * SCREEN_WIDTH / 2)
 export const VERSE_PLAYER_TEXT = {
-  x: PLAYER_BTN_W + PLAYER_BTN_X,
-  y: px(40),
-  w: SCREEN_WIDTH - PLAYER_BTN_W * 2 - PLAYER_BTN_X * 2,
-  h: SCREEN_HEIGHT - px(80),
+  x: (SCREEN_WIDTH - VERSE_PLAYER_TEXT_WIDTH) / 2,
+  y: (SCREEN_HEIGHT - VERSE_PLAYER_TEXT_HEIGHT) / 2,
+  w: VERSE_PLAYER_TEXT_WIDTH,
+  h: VERSE_PLAYER_TEXT_HEIGHT,
   text_size: px(32),
   text_style: hmUI.text_style.WRAP,
   align_h: hmUI.align.CENTER_H,
   align_v: hmUI.align.CENTER_V,
-  color: 0xffffff
+  color: 0xFFFFFF
 }

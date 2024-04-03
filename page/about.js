@@ -3,7 +3,7 @@ import { px } from '@zos/utils'
 import { BaseAboutScreen } from '../libs/mmk/BaseAboutScreen'
 import { _, DEVICE_LANG, isRtlLang } from '../libs/i18n/lang'
 import { StartPage } from './start'
-import { getRows } from '../components/chaptersList'
+import { getRow } from '../components/chaptersList'
 import hmUI from '@zos/ui'
 import { SCREEN_MARGIN_X, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { createSwitch } from '../components/switch'
@@ -19,6 +19,11 @@ Page(
     state: {
       about: undefined
     },
+
+    onGettingSetting () {
+      this.state.about.updateStatus('Getting Settings...')
+    },
+
     onGettingChapters () {
       this.state.about.updateStatus('Getting Chapters...')
     },
@@ -27,7 +32,7 @@ Page(
       // logger.log('Inside Create Widgets')
       this.state.about.updateStatus('Setting up Rows...')
       setTimeout(() => {
-        getRows()
+        getRow(0)
         this.state.about.ready(true)
       }, 50)
     },
@@ -37,8 +42,8 @@ Page(
       this.state.about.start()
       if (getApp()._options.globalData.appStarting) {
         getApp()._options.globalData.appStarting = false
-        this.state.about.updateStatus('Getting Settings...')
-        setTimeout(() => this.getSideAppSettings(), 50)
+        this.state.about.updateStatus('Initializing...')
+        setTimeout(() => this.initialize(), 50)
       } else {
         this.state.about.ready()
       }
@@ -109,12 +114,13 @@ class AboutScreen extends BaseAboutScreen {
   }
 
   ready (autoStart = false) {
-    this.status.setProperty(hmUI.prop.VISIBLE, false)
-    this.next.setProperty(hmUI.prop.VISIBLE, true)
     if (autoStart && getAutoStart()) {
       push({
         url: this.nextPage
       })
+    } else {
+      this.status.setProperty(hmUI.prop.VISIBLE, false)
+      this.next.setProperty(hmUI.prop.VISIBLE, true)
     }
   }
 }

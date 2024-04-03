@@ -103,7 +103,7 @@ export const quranComApiModule = {
       caller,
       onSuccess,
       onError,
-      `${baseUrl}verses/by_key/${verse}?audio=${recitationId}&fields=text_imlaei`,
+      `${baseUrl}verses/by_key/${verse}?audio=${recitationId}`,
       'verse'
     )
   },

@@ -1,16 +1,15 @@
 /* global getApp */
 import { push } from '@zos/router'
-import { statSync } from '@zos/fs'
 import { NUM_VERSES } from './constants'
 import { getVerseMapping } from '../page/data/juzs'
 import { getPlayerInfo } from './storage/localStorage'
+import { FS } from './storage/fsWrapper'
 
 export function restorePlayer () {
   const playerInfo = getPlayerInfo()
-  console.log('player info=' + playerInfo)
   if (playerInfo === undefined) return false
 
-  getApp()._options.globalData.player = playerInfo
+  getApp()._options.globalData.playerInfo = playerInfo
   if (playerInfo.curVerse !== undefined) {
     push({
       url: 'page/player',
@@ -76,9 +75,7 @@ export function getFileName (verse) {
 
 export function checkVerseExists (verse) {
   const fileName = getFileName(verse)
-  return !!(statSync({
-    path: `download/${fileName}`
-  }))
+  return FS.exists(`download/${fileName}`)
 }
 
 export function humanizeTime (total) {

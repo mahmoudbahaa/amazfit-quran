@@ -4,9 +4,10 @@ import { BasePage } from '@zeppos/zml/base-page'
 import { setWakeUpRelaunch } from '@zos/display'
 import {
   getLang,
-  setChapters, setEnChapters,
+  setChapters,
+  setEnChapters,
   setLang,
-  setRecitation
+  setRecitation, setVerseInfo
 } from '../libs/storage/localStorage.js'
 import { DEVICE_LANG } from '../libs/i18n/lang'
 import { quranComApiModule } from '../components/quran-com-api-module'
@@ -20,10 +21,22 @@ export function StartPage (extraOptions) {
       setWakeUpRelaunch({
         relaunch: true
       })
+
+      getApp()._options.globalData.basePage = this
     },
 
     onDestroy () {
       logger.log('start page on destroy invoke')
+    },
+
+    onCall (data) {
+      if (getApp()._options.globalData.player === undefined) return
+
+      if (data.curDownVerse !== undefined) {
+        getApp()._options.globalData.player.updateStatus(data.curDownVerse)
+      } else if (data.verse !== undefined) {
+        setVerseInfo(data.verse, data.mapping)
+      }
     },
 
     onSettings () {
@@ -38,12 +51,14 @@ export function StartPage (extraOptions) {
       getApp()._options.globalData.langCode = langCode
       const caller = this
       if (lastLangCode !== langCode) {
+        this.onGettingChapters()
         if (langCode === 'en' || langCode === 'ar') {
-          setLang(langCode)
-          setEnChapters()
-          this.createWidgets()
+          setTimeout(() => {
+            setLang(langCode)
+            setEnChapters()
+            this.start()
+          }, 50)
         } else {
-          this.onGettingChapters()
           quranComApiModule.getChapters(this, langCode, (theChapters) => {
             setLang(langCode)
             setChapters(theChapters.map(chapter => {
@@ -54,17 +69,16 @@ export function StartPage (extraOptions) {
                 translated_name: chapter.translated_name.name
               }
             }))
-            caller.createWidgets()
+            caller.start()
           })
         }
       } else {
-        this.createWidgets()
+        this.start()
       }
-
-      unDefChapters()
     },
 
     getSideAppSettings () {
+      this.onGettingSetting()
       this.request({
         method: 'get.settings',
         params: ['lang', 'recitation']
@@ -77,7 +91,18 @@ export function StartPage (extraOptions) {
         logger.log('Error while retrieving settings ' + error)
       })
     },
+
+    initialize () {
+      this.getSideAppSettings()
+    },
+
+    start () {
+      unDefChapters()
+      this.createWidgets()
+    },
+
     onGettingChapters () {},
+    onGettingSetting () {},
     createWidgets () {},
 
     ...extraOptions

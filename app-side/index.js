@@ -31,7 +31,7 @@ AppSideService(
             data: ''
           })
 
-          if (this.state.downloader !== undefined) { this.state.downloader.stop() }
+          if (this.state.downloader) this.state.downloader.stop()
 
           this.state.downloader = new QuranVersesDownloader(logger, this, req.params)
           this.state.downloader.downloadVerses()
