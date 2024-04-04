@@ -3,8 +3,8 @@ import { log } from '@zos/utils'
 import { BasePage } from '@zeppos/zml/base-page'
 import { setWakeUpRelaunch } from '@zos/display'
 import {
-  getLang,
-  setChapters,
+  getLang, removeChaptersListRows,
+  setChapters, setChaptersListRow,
   setEnChapters,
   setLang,
   setRecitation, setVerseInfo
@@ -12,6 +12,7 @@ import {
 import { DEVICE_LANG } from '../libs/i18n/lang'
 import { quranComApiModule } from '../components/quran-com-api-module'
 import { unDefChapters } from './data/chapters'
+import { NUM_CHAPTERS } from '../libs/constants'
 
 const logger = log.getLogger('start.page')
 
@@ -50,16 +51,18 @@ export function StartPage (extraOptions) {
       console.log(JSON.stringify(langCode))
       getApp()._options.globalData.langCode = langCode
       const caller = this
+      this.onGettingChapters()
       if (lastLangCode !== langCode) {
-        this.onGettingChapters()
         if (langCode === 'en' || langCode === 'ar') {
           setTimeout(() => {
+            removeChaptersListRows()
             setLang(langCode)
             setEnChapters()
             this.start()
           }, 50)
         } else {
           quranComApiModule.getChapters(this, langCode, (theChapters) => {
+            removeChaptersListRows()
             setLang(langCode)
             setChapters(theChapters.map(chapter => {
               return {
@@ -78,7 +81,6 @@ export function StartPage (extraOptions) {
     },
 
     getSideAppSettings () {
-      this.onGettingSetting()
       this.request({
         method: 'get.settings',
         params: ['lang', 'recitation']
@@ -92,17 +94,12 @@ export function StartPage (extraOptions) {
       })
     },
 
-    initialize () {
-      this.getSideAppSettings()
-    },
-
     start () {
       unDefChapters()
       this.createWidgets()
     },
 
     onGettingChapters () {},
-    onGettingSetting () {},
     createWidgets () {},
 
     ...extraOptions

@@ -3,13 +3,20 @@ import { getEnChapter } from '../../page/data/chapters'
 import { FS } from './fsWrapper'
 import { exit } from '@zos/router'
 
-const directory = 'quran_storage'
-if (!FS.exists(directory) && !FS.makeDirectory(directory)) {
-  console.log('Fatal Error: MkDir failed')
-  exit()
+let initialized = false
+function init (directory) {
+  if (initialized) return
+  initialized = true
+
+  if (!FS.exists(directory) && !FS.makeDirectory(directory)) {
+    console.log('Fatal Error: MkDir failed')
+    exit()
+  }
 }
 
 function getPath (key) {
+  const directory = 'quran_storage'
+  init(directory)
   return `${directory}/${key}`
 }
 
@@ -19,6 +26,10 @@ function setValue (key, value) {
 
 function getValue (key) {
   return FS.readObject(getPath(key))
+}
+
+function removeKey (key) {
+  return FS.remove(getPath(key))
 }
 
 function hasKey (key) {
@@ -93,16 +104,14 @@ export function getChaptersListRow (i) {
   return getValue('chaptersListRow_' + i)
 }
 
+export function removeChaptersListRows () {
+  for (let i = 0; i < NUM_CHAPTERS; i++) {
+    removeKey('chaptersListRow_' + i)
+  }
+}
+
 export function setChaptersListRow (i, row) {
   setValue('chaptersListRow_' + i, row)
-}
-
-export function getWithoutPunctuation () {
-  return getValue('withoutPunctuation')
-}
-
-export function setWithoutPunctuation (withoutPunctuation) {
-  setValue('withoutPunctuation', withoutPunctuation)
 }
 
 export function getAutoStart () {

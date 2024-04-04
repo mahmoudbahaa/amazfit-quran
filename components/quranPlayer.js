@@ -1,7 +1,6 @@
 /* global getApp */
 import { log } from '@zos/utils'
 import { create, id } from '@zos/media'
-import * as appServiceMgr from '@zos/app-service'
 import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
 import { getRecitation, hasVerseInfo } from '../libs/storage/localStorage'
 import { NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
@@ -9,8 +8,7 @@ import { Time } from '@zos/sensor'
 
 const time = new Time()
 const VOLUME_INCREMENT = 10
-const thisService = 'app-service/player_service'
-const logger = log.getLogger('player.service')
+const logger = log.getLogger('quran.player')
 
 export const START = 'start'
 export const EXIT = 'exit'
@@ -30,6 +28,7 @@ export class QuranPlayer {
   #curDownVerse
   #relativePath
   #recitation
+  #paused
 
   constructor () {
     this.#reset()
@@ -55,6 +54,7 @@ export class QuranPlayer {
         this.#doExit()
         break
       case PLAY:
+        this.#paused = false
         if (this.#player.getStatus() === this.#player.state.PAUSED) {
           this.#player.resume()
         } else {
@@ -62,9 +62,11 @@ export class QuranPlayer {
         }
         break
       case PAUSE:
+        this.#paused = true
         this.#player.pause()
         break
       case STOP:
+        this.#paused = true
         this.#player.stop()
         break
       case PREVIOUS:
@@ -103,12 +105,6 @@ export class QuranPlayer {
         params: ''
       })
     }
-
-    if (stopService) {
-      appServiceMgr.stop({
-        file: thisService
-      })
-    }
   }
 
   #reset (partialReset = false) {
@@ -118,6 +114,7 @@ export class QuranPlayer {
     this.#curPlayVerse = -1
     this.#curDownVerse = -1
     this.#recitation = getRecitation().split(',')[1]
+    this.#paused = false
 
     if (partialReset) return
 
@@ -168,6 +165,8 @@ export class QuranPlayer {
   }
 
   #playVerse () {
+    if (this.#paused) return
+
     if (this.#player &&
       (this.#player.getStatus() === (this.#player.state.STARTED || 5) ||
         this.#player.getStatus() === (this.#player.state.PREPARED || 3) ||
@@ -202,7 +201,7 @@ export class QuranPlayer {
           getApp()._options.globalData.playerInfo.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
-          logger.log(`=== prepare fail ===${JSON.stringify(result)}`)
+          logger.log('=== prepare fail ===')
           player.release()
         }
       })

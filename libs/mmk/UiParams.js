@@ -1,6 +1,7 @@
 import { getDeviceInfo } from '@zos/device'
 
 import { deviceClass, isLowRamDevice } from './DeviceIdentifier'
+import { px } from '@zos/utils'
 
 const info = getDeviceInfo()
 
@@ -22,7 +23,7 @@ let SCREEN_MARGIN_X = 0
 export const ICON_TEXT_SEPARATOR_WIDTH = 24
 let ICON_SIZE_SMALL = 24
 const ICON_SIZE_MEDIUM = 64
-let BASE_FONT_SIZE = 32
+let BASE_FONT_SIZE = px(32)
 let IS_ROUND = false
 
 switch (deviceClass) {
@@ -41,7 +42,7 @@ switch (deviceClass) {
     IS_ROUND = true
     SCREEN_MARGIN_Y = 32
     SCREEN_MARGIN_X = 24
-    BASE_FONT_SIZE = 36
+    BASE_FONT_SIZE = px(32)
     ICON_SIZE_SMALL = 24
     break
 }

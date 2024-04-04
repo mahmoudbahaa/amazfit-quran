@@ -38,6 +38,10 @@ export function isRtlLang (lang = undefined) {
   ]
 
   if (lang === undefined) {
+    lang = getApp()._options.globalData.langCode
+  }
+
+  if (lang === undefined) {
     lang = getCurLang()
   }
 

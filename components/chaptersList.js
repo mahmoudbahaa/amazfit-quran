@@ -25,7 +25,7 @@ export class ChaptersScreen extends ListScreen {
   #end
 
   constructor () {
-    super(isRtlLang(getApp()._options.globalData.langCode))
+    super(isRtlLang())
   }
 
   start () {

@@ -2,6 +2,21 @@ export function getVerseMapping (i) {
   return JUZS_VERSE_MAPPING[i]
 }
 
+export function getVerseJuz (verse) {
+  const chapter = verse.split(':')[0]
+  const verseOfChapter = verse.split(':')[1]
+  for (let i = 0; i < JUZS_VERSE_MAPPING.length; i++) {
+    if (!JUZS_VERSE_MAPPING[i][chapter]) continue
+
+    const start = JUZS_VERSE_MAPPING[i][chapter].split('-')[0]
+    const end = JUZS_VERSE_MAPPING[i][chapter].split('-')[1]
+    if (verseOfChapter >= start || verseOfChapter <= end) return (i + 1)
+  }
+
+  console.log('Should never reach here no juz was found for verse: ' + verse)
+  return -1
+}
+
 const JUZS_VERSE_MAPPING = [
   {
     1: '1-7',

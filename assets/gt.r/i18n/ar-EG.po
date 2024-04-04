@@ -26,6 +26,9 @@ msgstr "الغة الأساسية"
 msgid "Downloading"
 msgstr "جاري تنزيل"
 
+msgid "/"
+msgstr "\\"
+
 msgid "Translation Language"
 msgstr "لغة الترجمة"
 
@@ -78,20 +81,17 @@ msgstr "تطبيق القرآن"
 msgid "version"
 msgstr "إصدار"
 
-msgid "Developer"
-msgstr "مبرمج"
-
-msgid "Designer"
-msgstr "مصمم"
-
-msgid "Mahmoud Bahaa"
-msgstr "محمود بهاء"
-
-msgid "Nisreen Ali"
-msgstr "نسرين علي"
+msgid "Auto Start"
+msgstr "البدء التلقائي"
 
 msgid "number"
 msgstr "رقم"
 
 msgid "In The name of Allah"
 msgstr "﷽"
+
+msgid "Getting Chapters"
+msgstr "جاري تحميل السور"
+
+msgid "Setting up Rows"
+msgstr "جاري تحميل القائمة"

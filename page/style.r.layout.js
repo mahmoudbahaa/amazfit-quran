@@ -1,19 +1,16 @@
 import hmUI from '@zos/ui'
 import { px } from '@zos/utils'
-import { BASE_FONT_SIZE, BLACK, MAIN_COLOR, SCREEN_HEIGHT, SCREEN_WIDTH } from '../libs/mmk/UiParams'
+import {
+  BASE_FONT_SIZE,
+  BLACK,
+  MAIN_COLOR,
+  SCREEN_HEIGHT,
+  SCREEN_WIDTH,
+  SECONDARY_COLOR
+} from '../libs/mmk/UiParams'
+import { isRtlLang } from '../libs/i18n/lang'
 
-export const MAIN_TITLE_STYLE = {
-  x: px(0),
-  y: px(0),
-  w: SCREEN_WIDTH,
-  h: px(45),
-  text_size: px(18),
-  align_h: hmUI.align.CENTER_H,
-  align_v: hmUI.align.CENTER_V,
-  text_style: hmUI.text_style.NONE,
-  color: 0xffffff
-}
-
+const ICON_WIDTH = BASE_FONT_SIZE * 2
 export const ROW_STYLE = {
   text: '',
   color: BLACK,
@@ -23,7 +20,7 @@ export const ROW_STYLE = {
     radius: 0
   },
   description: '',
-  iconWidth: BASE_FONT_SIZE * 2,
+  iconWidth: ICON_WIDTH,
   iconText: '',
   iconAlignH: hmUI.align.CENTER_H,
   iconAlignV: hmUI.align.CENTER_V,
@@ -31,53 +28,11 @@ export const ROW_STYLE = {
   // alignH: hmUI.align.CENTER_H
 }
 
-export const MAIN_BUTTON_TEXT_SIZE = px(32)
-export const MAIN_BUTTON_W = SCREEN_WIDTH - px(80)
-export const MAIN_BUTTON_H = MAIN_BUTTON_TEXT_SIZE * 2 + px(10)
-export const MAIN_BUTTON_X = (SCREEN_WIDTH - MAIN_BUTTON_W) / 2
-export const MAIN_BUTTON_Y = px(60)
-export const MAIN_BUTTON_OY = MAIN_BUTTON_H + px(5)
-export const MAIN_BUTTON = {
-  x: MAIN_BUTTON_X,
-  y: MAIN_BUTTON_Y,
-  w: MAIN_BUTTON_W,
-  h: MAIN_BUTTON_H,
-  text_size: MAIN_BUTTON_TEXT_SIZE,
-  text_style: hmUI.text_style.NONE,
-  radius: 8,
-  color: 0xffffff,
-  press_color: 0x1976d2,
-  normal_color: 0xef5350
-}
-
-export const VIEW_CONTAINER = {
-  x: px(0),
-  y: px(60),
-  w: SCREEN_WIDTH,
-  h: SCREEN_HEIGHT
-}
-
-export const CLEAR_DISPLAY_ICON = {
-  x: SCREEN_HEIGHT / 2 + px(50),
-  y: px(0),
-  src: 'clear.png'
-}
-
-export const VERSE_PLAYER_LABEL = {
-  x: px(40),
-  y: SCREEN_HEIGHT - px(65),
-  w: SCREEN_WIDTH - px(40) * 2,
-  h: px(40),
-  text_size: px(32),
-  align_h: hmUI.align.CENTER_H,
-  color: 0xffffff
-}
-
-export const PLAYER_BTN_X = px(16)
+export const PLAYER_BTN_X = px(8)
 export const PLAYER_BTN_W = px(64)
 export const PLAYER_BTN_H = px(64)
-export const PLAYER_BTN_Y = SCREEN_HEIGHT / 2 - PLAYER_BTN_H * 2
-export const PLAYER_BTN_OY = px(64)
+export const PLAYER_BTN_Y = (SCREEN_HEIGHT - PLAYER_BTN_H * 3) / 2
+export const PLAYER_BTN_OY = PLAYER_BTN_H
 export const PLAYER_BTN = {
   x: PLAYER_BTN_X,
   y: PLAYER_BTN_Y,
@@ -86,16 +41,95 @@ export const PLAYER_BTN = {
   h: -1
 }
 
-const VERSE_PLAYER_TEXT_HEIGHT = 344 // 343
-const VERSE_PLAYER_TEXT_WIDTH = 316 // 315 // Math.ceil(Math.sqrt(2) * SCREEN_WIDTH / 2)
+const VERSE_PLAYER_BORDER_WIDTH = px(3)
+const VERSE_PLAYER_TEXT_HEIGHT = px(336) + VERSE_PLAYER_BORDER_WIDTH * 2
+const VERSE_PLAYER_TEXT_WIDTH = Math.floor(Math.sqrt(SCREEN_WIDTH * SCREEN_WIDTH - VERSE_PLAYER_TEXT_HEIGHT * VERSE_PLAYER_TEXT_HEIGHT)) - VERSE_PLAYER_BORDER_WIDTH * 2
+const INFO_FONT_SIZE = px(26)
+const INFO_ICON_WIDTH = INFO_FONT_SIZE * 2
+const INFO_OFFSET_X = px(26)
+const INFO_OFFSET_Y = px(4)
+const rtl = isRtlLang()
+const leftIconX = SCREEN_WIDTH / 2 - INFO_ICON_WIDTH / 2 - px(80)
+const rightIconX = SCREEN_HEIGHT / 2 + INFO_ICON_WIDTH / 2 + px(16)
+export const CLEAR_DISPLAY_ICON = {
+  x: rtl ? rightIconX : leftIconX,
+  y: px(5),
+  src: 'clear.png',
+  rotate: rtl ? 180 : 0
+}
+
+export const EXIT_ICON = {
+  x: rtl ? leftIconX : rightIconX,
+  y: px(5),
+  src: 'exit.png'
+}
+
+export const JUZ_CIRCLE = {
+  center_x: SCREEN_WIDTH / 2,
+  center_y: SCREEN_HEIGHT / 2 - INFO_OFFSET_Y - VERSE_PLAYER_TEXT_HEIGHT / 2 - VERSE_PLAYER_BORDER_WIDTH - INFO_ICON_WIDTH / 2,
+  radius: INFO_ICON_WIDTH / 2,
+  color: MAIN_COLOR
+}
+
+export const JUZ_TEXT = {
+  x: SCREEN_WIDTH / 2 - INFO_ICON_WIDTH / 2,
+  y: SCREEN_HEIGHT / 2 - INFO_OFFSET_Y - VERSE_PLAYER_TEXT_HEIGHT / 2 - VERSE_PLAYER_BORDER_WIDTH - INFO_ICON_WIDTH,
+  w: INFO_ICON_WIDTH,
+  h: INFO_ICON_WIDTH,
+  text_size: INFO_FONT_SIZE,
+  align_h: hmUI.align.CENTER_H,
+  align_v: hmUI.align.CENTER_V,
+  color: 0xFFFFFF
+}
+
+const offsetX = SCREEN_WIDTH / 2 - INFO_OFFSET_X - INFO_ICON_WIDTH
+export const CHAPTER_CIRCLE = {
+  center_x: rtl ? (SCREEN_WIDTH - offsetX - INFO_ICON_WIDTH / 2) : (offsetX + INFO_ICON_WIDTH / 2),
+  center_y: SCREEN_HEIGHT / 2 + INFO_OFFSET_Y + VERSE_PLAYER_TEXT_HEIGHT / 2 + VERSE_PLAYER_BORDER_WIDTH + INFO_ICON_WIDTH / 2,
+  radius: INFO_ICON_WIDTH / 2,
+  color: SECONDARY_COLOR
+}
+
+export const CHAPTER_TEXT = {
+  x: rtl ? SCREEN_WIDTH - offsetX - INFO_ICON_WIDTH : offsetX,
+  y: SCREEN_HEIGHT / 2 + INFO_OFFSET_Y + VERSE_PLAYER_TEXT_HEIGHT / 2 + VERSE_PLAYER_BORDER_WIDTH,
+  w: INFO_ICON_WIDTH,
+  h: INFO_ICON_WIDTH,
+  text_size: INFO_FONT_SIZE,
+  align_h: hmUI.align.CENTER_H,
+  align_v: hmUI.align.CENTER_V,
+  color: 0xFFFFFF
+}
+
+export const VERSE_PLAYER_LABEL = {
+  x: rtl ? 0 : SCREEN_WIDTH / 2 - INFO_OFFSET_X + px(8),
+  y: CHAPTER_TEXT.y,
+  w: SCREEN_WIDTH - offsetX - CHAPTER_TEXT.w - px(8),
+  h: INFO_ICON_WIDTH,
+  text_size: BASE_FONT_SIZE,
+  align_h: rtl ? hmUI.align.RIGHT : hmUI.align.LEFT,
+  align_v: hmUI.align.CENTER_V,
+  color: 0xFFFFFF
+}
+
 export const VERSE_PLAYER_TEXT = {
   x: (SCREEN_WIDTH - VERSE_PLAYER_TEXT_WIDTH) / 2,
   y: (SCREEN_HEIGHT - VERSE_PLAYER_TEXT_HEIGHT) / 2,
   w: VERSE_PLAYER_TEXT_WIDTH,
   h: VERSE_PLAYER_TEXT_HEIGHT,
-  text_size: px(32),
+  text_size: BASE_FONT_SIZE,
   text_style: hmUI.text_style.WRAP,
   align_h: hmUI.align.CENTER_H,
   align_v: hmUI.align.CENTER_V,
   color: 0xFFFFFF
+}
+
+export const VERSE_PLAYER_BORDER = {
+  x: (SCREEN_WIDTH - VERSE_PLAYER_TEXT_WIDTH) / 2 - VERSE_PLAYER_BORDER_WIDTH,
+  y: (SCREEN_HEIGHT - VERSE_PLAYER_TEXT_HEIGHT) / 2 - VERSE_PLAYER_BORDER_WIDTH,
+  w: VERSE_PLAYER_TEXT_WIDTH + VERSE_PLAYER_BORDER_WIDTH * 2,
+  h: VERSE_PLAYER_TEXT_HEIGHT + VERSE_PLAYER_BORDER_WIDTH * 2,
+  color: 0xAAAAAA,
+  line_width: VERSE_PLAYER_BORDER_WIDTH,
+  radius: VERSE_PLAYER_BORDER_WIDTH
 }

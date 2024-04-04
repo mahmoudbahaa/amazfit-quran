@@ -1,7 +1,7 @@
 import {
   closeSync,
   mkdirSync, O_CREAT, O_RDONLY, O_RDWR, openAssetsSync,
-  readFileSync, readSync, statAssetsSync,
+  readFileSync, readSync, rmSync, statAssetsSync,
   statSync,
   writeFileSync, writeSync
 } from '@zos/fs'
@@ -10,6 +10,14 @@ export class FS {
   static makeDirectory (directory) {
     try {
       return mkdirSync({ path: directory }) === 0
+    } catch (error) {
+      return false
+    }
+  }
+
+  static remove (path) {
+    try {
+      return rmSync({ path }) === 0
     } catch (error) {
       return false
     }

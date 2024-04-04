@@ -1,6 +1,6 @@
 /* global getApp, Page */
 import hmUI from '@zos/ui'
-import { log as Logger, px } from '@zos/utils'
+import { log as Logger } from '@zos/utils'
 import { setWakeUpRelaunch } from '@zos/display'
 import { exit } from '@zos/router'
 import * as Styles from './style.r.layout.js'
@@ -20,18 +20,14 @@ import {
 import {
   getVerseInfo,
   getVerseText,
-  getWithoutPunctuation,
-  setPlayerInfo,
-  setWithoutPunctuation
+  setPlayerInfo
 } from '../libs/storage/localStorage.js'
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
 import { NUM_VERSES } from '../libs/constants'
-import { _ } from '../libs/i18n/lang'
+import { _, isRtlLang } from '../libs/i18n/lang'
 import { Time } from '@zos/sensor'
 import { BasePage } from '@zeppos/zml/base-page'
-import { createSwitch } from '../components/switch'
-import { removePunctuation } from '../libs/i18n/arabicUtils'
-import { CLEAR_DISPLAY_ICON } from './style.r.layout.js'
+import { getVerseJuz } from './data/juzs'
 
 const time = new Time()
 const logger = Logger.getLogger('player page')
@@ -42,8 +38,7 @@ Page(BasePage({
     type: undefined,
     number: -1,
     verse: undefined,
-    verseInfo: {},
-    withoutPunctuation: false
+    verseInfo: {}
   },
 
   onInit (paramsString) {
@@ -59,6 +54,10 @@ Page(BasePage({
   },
   onPause () {
     logger.log('page on pause invoke')
+    if (getApp()._options.globalData.player) {
+      getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
+      getApp()._options.globalData.player = undefined
+    }
   },
   onResume () {
     logger.log('page on resume invoke')
@@ -73,8 +72,10 @@ Page(BasePage({
     setPlayerInfo(getApp()._options.globalData.playerInfo)
 
     logger.log('Exiting Player')
-    getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
-    getApp()._options.globalData.player = undefined
+    if (getApp()._options.globalData.player) {
+      getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
+      getApp()._options.globalData.player = undefined
+    }
     if (this.state.interval) {
       clearInterval(this.state.interval)
     }
@@ -91,11 +92,21 @@ Page(BasePage({
   },
 
   getDownloadLabel (verse) {
-    return `${_('Downloading')} ${_('Verse')} ${verse ? this.getVerseLabel(verse) : '...'}`
+    return `${_('Downloading')} ${_('Verse')} ${this.getVerseLabel(verse)}`
+  },
+
+  getJuz (v) {
+    return _(getVerseJuz(v))
+  },
+
+  getChapter (v) {
+    return _(v.split(':')[0])
   },
 
   getVerseLabel (v) {
-    return `${_(v.split(':')[0])}:${_(v.split(':')[1])}/${_(v.split(':')[0])}:${_(NUM_VERSES[parseInt(v.split(':')[0]) - 1])}`
+    const label = `${_(v.split(':')[1])}${_('/')}${_(NUM_VERSES[parseInt(v.split(':')[0]) - 1])}`
+    if (!isRtlLang()) return label
+    return '‏؜' + label
   },
 
   getVerseTextParts (verse) {
@@ -106,18 +117,27 @@ Page(BasePage({
   },
 
   build () {
-    this.state.withoutPunctuation = getWithoutPunctuation()
-    createSwitch(SCREEN_WIDTH / 2 - px(50), px(0), !this.state.withoutPunctuation, (slideSwitch, checked) => {
-      this.state.withoutPunctuation = !checked
-      setWithoutPunctuation(this.state.withoutPunctuation)
+    // const verseBg =
+    hmUI.createWidget(hmUI.widget.STROKE_RECT, {
+      ...Styles.VERSE_PLAYER_BORDER
     })
 
-    // const verseBg =
-    hmUI.createWidget(hmUI.widget.FILL_RECT, {
-      ...Styles.VERSE_PLAYER_TEXT,
-      color: 0x004400,
-      radius: px(4)
+    hmUI.createWidget(hmUI.widget.CIRCLE, {
+      ...Styles.JUZ_CIRCLE
     })
+
+    const juzLabel = hmUI.createWidget(hmUI.widget.TEXT, {
+      ...Styles.JUZ_TEXT
+    })
+
+    hmUI.createWidget(hmUI.widget.CIRCLE, {
+      ...Styles.CHAPTER_CIRCLE
+    })
+
+    const chapterLabel = hmUI.createWidget(hmUI.widget.TEXT, {
+      ...Styles.CHAPTER_TEXT
+    })
+
     const verseText = hmUI.createWidget(hmUI.widget.TEXT, {
       ...Styles.VERSE_PLAYER_TEXT
     })
@@ -127,12 +147,12 @@ Page(BasePage({
       text: ''
     })
 
-    const clearAyaDisplayIcon = hmUI.createWidget(hmUI.widget.IMG, {
+    hmUI.createWidget(hmUI.widget.IMG, {
       ...Styles.CLEAR_DISPLAY_ICON
-    })
-
-    clearAyaDisplayIcon.addEventListener(hmUI.event.CLICK_UP, () => {
+    }).addEventListener(hmUI.event.CLICK_UP, () => {
       if (this.state.interval) {
+        juzLabel.setProperty(hmUI.prop.TEXT, '')
+        chapterLabel.setProperty(hmUI.prop.TEXT, '')
         verseInfo.setProperty(hmUI.prop.TEXT, '')
         verseText.setProperty(hmUI.prop.TEXT, '')
         clearInterval(this.state.interval)
@@ -140,6 +160,12 @@ Page(BasePage({
       } else {
         this.state.interval = setInterval(() => updater(this), 20)
       }
+    })
+
+    hmUI.createWidget(hmUI.widget.IMG, {
+      ...Styles.EXIT_ICON
+    }).addEventListener(hmUI.event.CLICK_UP, () => {
+      exit()
     })
 
     let verse
@@ -174,8 +200,6 @@ Page(BasePage({
             verseTextText = lastVerseText
           }
         }
-
-        verseTextText = that.state.withoutPunctuation ? removePunctuation(verseTextText) : verseTextText
       } else {
         // Still Downloading
         verse = getApp()._options.globalData.playerInfo.curDownloadedVerse
@@ -184,26 +208,29 @@ Page(BasePage({
       }
 
       verseInfo.setProperty(hmUI.prop.TEXT, that.getVerseLabel(verse))
+      juzLabel.setProperty(hmUI.prop.TEXT, that.getJuz(verse))
+      chapterLabel.setProperty(hmUI.prop.TEXT, that.getChapter(verse))
       verseText.setProperty(hmUI.prop.TEXT, verseTextText)
     }
 
     this.state.interval = setInterval(() => updater(this), 20)
 
+    const playPauseButton = { src: 'pause.png', action: PAUSE, left: true }
     const playerButtons = [
       { src: 'volume-dec.png', action: DECREASE_VOLUME, left: true },
-      { src: 'play.png', action: PLAY, left: true },
-      { src: 'pause.png', action: PAUSE, left: true },
+      playPauseButton,
       { src: 'back.png', action: PREVIOUS, left: true },
       { src: 'volume-inc.png', action: INCREASE_VOLUME, left: false },
       { src: 'stop.png', action: STOP, left: false },
-      { src: 'cancel.png', action: EXIT, left: false },
       { src: 'forward.png', action: NEXT, left: false }
     ]
 
     let startYLeft = 0
     let startYRight = 0
+    const rtl = isRtlLang()
     playerButtons.forEach((playerButton) => {
-      const x = playerButton.left ? Styles.PLAYER_BTN_X : (SCREEN_WIDTH - Styles.PLAYER_BTN_X - Styles.PLAYER_BTN_W)
+      const left = (playerButton.left && !rtl) || (!playerButton.left && rtl)
+      const x = left ? Styles.PLAYER_BTN_X : (SCREEN_WIDTH - Styles.PLAYER_BTN_X - Styles.PLAYER_BTN_W)
       const y = Styles.PLAYER_BTN_Y + Styles.PLAYER_BTN_OY * (playerButton.left ? startYLeft++ : startYRight++)
 
       const bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
@@ -216,23 +243,31 @@ Page(BasePage({
       })
 
       bg.setProperty(hmUI.prop.VISIBLE, false)
-      hmUI.createWidget(hmUI.widget.IMG, {
+      const img = hmUI.createWidget(hmUI.widget.IMG, {
         ...Styles.PLAYER_BTN,
         x,
         y,
         w: ICON_SIZE_MEDIUM,
         h: ICON_SIZE_MEDIUM,
-        src: playerButton.src
-      }).addEventListener(hmUI.event.CLICK_UP, () => {
+        src: playerButton.src,
+        angle: rtl ? 180 : 0,
+        center_x: ICON_SIZE_MEDIUM / 2,
+        center_y: ICON_SIZE_MEDIUM / 2
+      })
+
+      playerButton.img = img
+      img.addEventListener(hmUI.event.CLICK_UP, () => {
         bg.setProperty(hmUI.prop.VISIBLE, true)
         setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), 200)
-
-        if (playerButton.action === EXIT) {
-          exit()
-          return
-        }
-
         getApp()._options.globalData.player.doAction(this.getServiceParam(playerButton.action))
+
+        if (playerButton.action === PLAY) {
+          playPauseButton.action = PAUSE
+          playPauseButton.img.setProperty(hmUI.prop.SRC, 'pause.png')
+        } else if (playerButton.action === PAUSE || playerButton.action === STOP) {
+          playPauseButton.action = PLAY
+          playPauseButton.img.setProperty(hmUI.prop.SRC, 'play.png')
+        }
       })
     })
 
