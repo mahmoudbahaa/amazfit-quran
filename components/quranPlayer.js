@@ -1,10 +1,10 @@
 /* global getApp */
-import { log } from '@zos/utils'
 import { create, id } from '@zos/media'
-import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
-import { getRecitation, hasVerseInfo } from '../libs/storage/localStorage'
-import { NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
 import { Time } from '@zos/sensor'
+import { log } from '@zos/utils'
+import { getRecitation, getVerseInfo, hasVerseInfo } from '../libs/config/default'
+import { IS_EMULATOR, NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
+import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
 
 const time = new Time()
 const VOLUME_INCREMENT = 10
@@ -164,7 +164,42 @@ export class QuranPlayer {
     return getFileName(this.#verses[verseIndex])
   }
 
+  emulatePlayVerse () {
+    this.#curPlayVerse++
+
+    if (this.#curPlayVerse >= this.#verses.length) {
+      this.#emulatorPlayed = false
+      if (getApp()._options.globalData.continue) {
+        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number + 1)
+      } else {
+        this.#doExit(false)
+      }
+
+      return
+    }
+
+    if (this.#curPlayVerse >= this.#curDownVerse) {
+      this.#curPlayVerse--
+      this.#emulatorPlayed = false
+      return
+    }
+
+    getApp()._options.globalData.playerInfo.verseStartTime = time.getTime()
+    getApp()._options.globalData.playerInfo.curVerse = this.#verses[this.#curPlayVerse]
+
+    const mapping = getVerseInfo(this.#verses[this.#curPlayVerse])
+    const timeout = mapping.length === 0 ? 5000 : mapping[mapping.length - 1]
+    setTimeout(() => this.emulatePlayVerse(), timeout)
+  }
+
+  #emulatorPlayed
   #playVerse () {
+    if (IS_EMULATOR && !this.#emulatorPlayed) {
+      this.#emulatorPlayed = true
+      this.emulatePlayVerse()
+      return
+    }
+
     if (this.#paused) return
 
     if (this.#player &&
@@ -201,21 +236,21 @@ export class QuranPlayer {
           getApp()._options.globalData.playerInfo.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
+          console.log('hi15')
           logger.log('=== prepare fail ===')
           player.release()
         }
       })
 
       player.addEventListener(player.event.COMPLETE, (result) => {
+        console.log('hi12')
         that.#playVerse()
       })
-
-      player.setSource(player.source.FILE, { file: `data://download/${this.#getFileName(this.#curPlayVerse)}` })
-      player.prepare()
     } else {
       player.stop()
-      player.setSource(player.source.FILE, { file: `data://download/${this.#getFileName(this.#curPlayVerse)}` })
-      player.prepare()
     }
+
+    player.setSource(player.source.FILE, { file: `data://download/${this.#getFileName(this.#curPlayVerse)}` })
+    player.prepare()
   }
 }

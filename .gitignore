@@ -8,10 +8,11 @@ yarn.lock
 package-lock.json
 selenium-debug.log
 .idea
-.fleet
 .vscode
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-scripts/verses/
+/1.0
+/2.0
+/3.0

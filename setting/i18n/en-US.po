@@ -1,2 +1,0 @@
-msgid "surah_name_language"
-msgstr "Surah Names Language"

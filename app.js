@@ -11,15 +11,13 @@ App(
         curDownloadedVerse: undefined,
         verseStartTime: undefined
       },
-      settings: undefined,
-      langCode: undefined,
       pageNumber: 0,
       scrollTop: 0,
       continue: true,
       errorCount: 0,
       restorePlayer: true,
-      appStarting: true,
       basePage: undefined,
+      loadingAnim: undefined,
       player: undefined
     },
     onCreate () {

@@ -29,9 +29,22 @@
       "module": {
         "page": {
           "pages": [
+            "page/start",
+            "page/home",
             "page/about",
             "page/select",
-            "page/player"
+            "page/player",
+            "page/settings/home",
+            "page/settings/fontSize",
+            "page/settings/lang",
+            "page/settings/chaptersLang",
+            "page/file/home",
+            "page/file/manager",
+            "page/file/storageInfo",
+            "page/file/edit",
+            "page/file/view/text",
+            "page/file/view/image",
+            "page/file/view/hex"
           ]
         },
         "app-side": {

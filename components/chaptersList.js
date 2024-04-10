@@ -1,7 +1,17 @@
 /* global getApp */
-import { getChapter, getChaptersListRow, setChaptersListRow, useSimpleSurahName } from '../libs/storage/localStorage'
-import { getVerseMapping } from '../page/data/juzs'
+import { push } from '@zos/router'
+import hmUI from '@zos/ui'
+import {
+  getChapter, getChaptersLang,
+  getChaptersListRow,
+  getLang,
+  setChaptersListRow,
+  useSimpleSurahName
+} from '../libs/config/default'
+import { getVerseMapping } from '../libs/config/juzs'
+import { NUM_JUZS, NUM_PAGES } from '../libs/constants'
 import { _, isRtlLang } from '../libs/i18n/lang'
+import { ListScreen } from '../libs/mmk/ListScreen'
 import {
   MAIN_COLOR,
   MAIN_COLOR_TXT,
@@ -10,10 +20,6 @@ import {
   WARNING_COLOR,
   WARNING_COLOR_TXT
 } from '../libs/mmk/UiParams'
-import { push } from '@zos/router'
-import { ListScreen } from '../libs/mmk/ListScreen'
-import { NUM_JUZS, NUM_PAGES } from '../libs/constants'
-import hmUI from '@zos/ui'
 import { PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from './quranPlayer'
 
 const playerPage = 'page/player'
@@ -94,9 +100,11 @@ export function getRow (rowNumber) {
   if (row !== undefined) return row
 
   const rows = []
-  const ar = getApp()._options.globalData.langCode === 'ar'
+  const uiAr = getLang() === 'ar'
+  const chaptersAr = getChaptersLang() === 'ar'
+  const excludeTranslation = uiAr && chaptersAr
   const useSimpleNames = useSimpleSurahName() === 'true'
-  const nameKey = ar ? 'name_arabic' : useSimpleNames ? 'name_simple' : 'name_complex'
+  const nameKey = uiAr ? 'name_arabic' : (useSimpleNames ? 'name_simple' : 'name_complex')
   let lastSurahNumber = -1
   for (let i = 0; i < NUM_JUZS; i++) {
     rows.push(addJuzRow(i + 1))
@@ -106,7 +114,7 @@ export function getRow (rowNumber) {
 
       const chapter = getChapter(surahNumber - 1)
       const name = chapter[nameKey]
-      const translation = ar ? '' : chapter.translated_name
+      const translation = excludeTranslation ? '' : (chaptersAr ? chapter.name_arabic : chapter.translated_name)
       rows.push(addChapterRow(surahNumber, name, translation))
       lastSurahNumber = surahNumber
     }

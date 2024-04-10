@@ -1,10 +1,9 @@
 import { quranComApiModule } from '../components/quran-com-api-module'
 import {
   ERROR_RETRY_AFTER,
-  MAX_ERROR_RETRIES
+  MAX_ERROR_RETRIES,
+  MIN_TIMEOUT_DURATION
 } from '../libs/constants'
-
-const TIME_OUT_DURATION = 50
 
 export class QuranVersesDownloader {
   #verses
@@ -42,15 +41,8 @@ export class QuranVersesDownloader {
 
   downloadVerses () {
     this.#service.call({ curDownVerse: this.#curDownVerse })
-    // this.#stoppingVerseDownload = false
-    // if (!this.#stoppedVerseDownload) return
-    // this.#stoppedVerseDownload = false
-    setTimeout(async () => await this.#getVersesAudioPaths(), TIME_OUT_DURATION)
+    setTimeout(async () => await this.#getVersesAudioPaths(), MIN_TIMEOUT_DURATION)
   }
-
-  // updateParams (logger, service, params) {
-  //   this.#init(logger, service, params)
-  // }
 
   #checkStop () {
     if (this.#stoppingVerseDownload) {
@@ -72,7 +64,7 @@ export class QuranVersesDownloader {
       verse,
       () => {
         this.#transferErrorCount = 0
-        setTimeout(() => this.#downloadVerseText(), TIME_OUT_DURATION)
+        setTimeout(() => this.#downloadVerseText(), MIN_TIMEOUT_DURATION)
       },
       event => {
         this.#logger.log('transfer error=>' + JSON.stringify(event))
@@ -85,7 +77,7 @@ export class QuranVersesDownloader {
           setTimeout(() => this.#transferVersesAudio(), ERROR_RETRY_AFTER)
         } else {
           this.#logger.log('Too many errors in transfer stopping :(')
-          setTimeout(() => this.stop(), 5000)
+          setTimeout(() => this.stop(), MIN_TIMEOUT_DURATION)
         }
       }
     )
@@ -95,7 +87,7 @@ export class QuranVersesDownloader {
     if (this.#checkStop()) return
 
     if (this.#audioExists[this.#curDownVerse]) {
-      setTimeout(() => this.#downloadVerseText(), 50)
+      setTimeout(() => this.#downloadVerseText(), MIN_TIMEOUT_DURATION)
       return
     }
 
@@ -107,9 +99,9 @@ export class QuranVersesDownloader {
       this.#service,
       this.#relativePath,
       this.#verses[this.#curDownVerse],
-      () => {
+      (result) => {
         this.#downloadErrorCount = 0
-        setTimeout(() => this.#transferVersesAudio(), TIME_OUT_DURATION)
+        setTimeout(() => this.#transferVersesAudio(), MIN_TIMEOUT_DURATION)
       },
       event => {
         this.#logger.log('download error=>' + JSON.stringify(event))
@@ -118,7 +110,7 @@ export class QuranVersesDownloader {
           setTimeout(() => this.#downloadVersesAudio(), ERROR_RETRY_AFTER)
         } else {
           this.#logger.log('Too many errors in download stopping :(')
-          setTimeout(() => this.stop(), TIME_OUT_DURATION)
+          setTimeout(() => this.stop(), MIN_TIMEOUT_DURATION)
         }
       }
     )
@@ -138,14 +130,14 @@ export class QuranVersesDownloader {
 
     this.#curDownVerse++
     this.#service.call({ curDownVerse: this.#curDownVerse })
-    if (this.#curDownVerse === this.#verses.length) {
-      this.#stoppedVerseDownload = true
+    if (this.#curDownVerse >= this.#verses.length) {
+      this.#stoppingVerseDownload = true
       return
     }
 
     const verse = this.#verses[this.#curDownVerse]
     if (this.#textExists[this.#curDownVerse]) {
-      setTimeout(() => this.#downloadVersesAudio(), TIME_OUT_DURATION)
+      setTimeout(() => this.#downloadVersesAudio(), MIN_TIMEOUT_DURATION)
       return
     }
 
@@ -157,7 +149,7 @@ export class QuranVersesDownloader {
       (verseText) => {
         const mapping = this.#parseVerse(verseText)
         this.#service.call({ verse, mapping })
-        setTimeout(() => that.#downloadVersesAudio(), TIME_OUT_DURATION)
+        setTimeout(() => that.#downloadVersesAudio(), MIN_TIMEOUT_DURATION)
       }
     )
   }
@@ -172,7 +164,7 @@ export class QuranVersesDownloader {
       (audioFiles) => {
         const { url } = audioFiles[0]
         that.#relativePath = url.substring(0, url.lastIndexOf('/') + 1)
-        setTimeout(async () => await that.#downloadVerseText(), TIME_OUT_DURATION)
+        setTimeout(async () => await that.#downloadVerseText(), MIN_TIMEOUT_DURATION)
       })
   }
 

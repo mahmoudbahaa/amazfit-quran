@@ -6,7 +6,7 @@ export const quranComApiModule = {
       method: 'get',
       url
     }).then((result) => {
-      if (result.status >= 300 && result.status < 200) {
+      if (result.status >= 300 || result.status < 200) {
         console.log(`Error${result.statusText}`)
         if (onError) {
           onError()

@@ -1,38 +1,34 @@
 /* global getApp, Page */
-import hmUI from '@zos/ui'
-import { log as Logger } from '@zos/utils'
 import { setWakeUpRelaunch } from '@zos/display'
 import { exit } from '@zos/router'
-import * as Styles from './style.r.layout.js'
-import { parseQuery, restorePlayer } from '../libs/utils.js'
-import {
-  START,
-  EXIT,
-  PLAY,
-  PAUSE,
-  STOP,
-  PREVIOUS,
-  NEXT,
-  DECREASE_VOLUME,
-  INCREASE_VOLUME,
-  QuranPlayer
-} from '../components/quranPlayer'
-import {
-  getVerseInfo,
-  getVerseText,
-  setPlayerInfo
-} from '../libs/storage/localStorage.js'
-import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
-import { NUM_VERSES } from '../libs/constants'
-import { _, isRtlLang } from '../libs/i18n/lang'
 import { Time } from '@zos/sensor'
-import { BasePage } from '@zeppos/zml/base-page'
-import { getVerseJuz } from './data/juzs'
+import hmUI from '@zos/ui'
+import { log as Logger } from '@zos/utils'
+import {
+  DECREASE_VOLUME,
+  EXIT,
+  INCREASE_VOLUME,
+  NEXT,
+  PAUSE,
+  PLAY,
+  PREVIOUS,
+  QuranPlayer,
+  START,
+  STOP
+} from '../components/quranPlayer'
+import { getVerseInfo, setPlayerInfo } from '../libs/config/default'
+import { getVerseJuz } from '../libs/config/juzs.js'
+import { getVerseText } from '../libs/config/verse'
+import { MIN_TIMEOUT_DURATION, NUM_VERSES } from '../libs/constants.js'
+import { _, isRtlLang } from '../libs/i18n/lang'
+import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
+import { parseQuery } from '../libs/utils.js'
+import * as Styles from './style.r.layout'
 
 const time = new Time()
 const logger = Logger.getLogger('player page')
 
-Page(BasePage({
+Page({
   state: {
     interval: undefined,
     type: undefined,
@@ -54,14 +50,14 @@ Page(BasePage({
   },
   onPause () {
     logger.log('page on pause invoke')
-    if (getApp()._options.globalData.player) {
-      getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
-      getApp()._options.globalData.player = undefined
-    }
+    // if (getApp()._options.globalData.player) {
+    //   getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
+    //   getApp()._options.globalData.player = undefined
+    // }
   },
   onResume () {
     logger.log('page on resume invoke')
-    restorePlayer()
+    // restorePlayer()
   },
   onDestroy () {
     logger.log('page on destroy invoke')
@@ -117,7 +113,6 @@ Page(BasePage({
   },
 
   build () {
-    // const verseBg =
     hmUI.createWidget(hmUI.widget.STROKE_RECT, {
       ...Styles.VERSE_PLAYER_BORDER
     })
@@ -158,7 +153,7 @@ Page(BasePage({
         clearInterval(this.state.interval)
         this.state.interval = undefined
       } else {
-        this.state.interval = setInterval(() => updater(this), 20)
+        this.state.interval = setInterval(() => updater(this), MIN_TIMEOUT_DURATION)
       }
     })
 
@@ -213,7 +208,7 @@ Page(BasePage({
       verseText.setProperty(hmUI.prop.TEXT, verseTextText)
     }
 
-    this.state.interval = setInterval(() => updater(this), 20)
+    this.state.interval = setInterval(() => updater(this), MIN_TIMEOUT_DURATION)
 
     const playPauseButton = { src: 'pause.png', action: PAUSE, left: true }
     const playerButtons = [
@@ -258,7 +253,7 @@ Page(BasePage({
       playerButton.img = img
       img.addEventListener(hmUI.event.CLICK_UP, () => {
         bg.setProperty(hmUI.prop.VISIBLE, true)
-        setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), 200)
+        setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), MIN_TIMEOUT_DURATION)
         getApp()._options.globalData.player.doAction(this.getServiceParam(playerButton.action))
 
         if (playerButton.action === PLAY) {
@@ -274,4 +269,3 @@ Page(BasePage({
     getApp()._options.globalData.player.doAction(this.getServiceParam(START))
   }
 })
-)

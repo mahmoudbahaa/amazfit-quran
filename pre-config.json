@@ -1,0 +1,32 @@
+{
+  "cleanFirst": true,
+  "sync": true,
+  "apis": ["1.0", "2.0", "3.0"],
+  "pages": [
+    "start",
+    "home",
+    "about",
+    "select",
+    "player",
+    "settings/home",
+    "settings/fontSize",
+    "settings/lang",
+    "settings/chaptersLang",
+    "file/home",
+    "file/manager",
+    "file/storageInfo",
+    "file/edit",
+    "file/view/text",
+    "file/view/image",
+    "file/view/hex"
+  ],
+  "module": {},
+  "sources": [
+    "app-side",
+    "components",
+    "lib",
+    "page",
+    "setting",
+    "app.js"
+  ]
+}

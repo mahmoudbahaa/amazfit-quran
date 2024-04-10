@@ -1,0 +1,3 @@
+[submodule "zeppos-cross-api"]
+	path = zeppos-cross-api
+	url = git@github.com:mahmoudbahaa/zeppos-cross-api-polyfill.git

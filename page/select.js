@@ -1,21 +1,22 @@
 /* global getApp, Page */
 import { log } from '@zos/utils'
 import { ChaptersScreen } from '../components/chaptersList'
-import { setWakeUpRelaunch } from '@zos/display'
+import { createLoadingWidget } from '../components/loadingWidget'
 import { restorePlayer } from '../libs/utils'
 
 const logger = log.getLogger('select.page')
 
 Page({
-  onInit () {
-    setWakeUpRelaunch({
-      relaunch: true
-    })
-  },
+  // onInit () {
+  //   setWakeUpRelaunch({
+  //     relaunch: true
+  //   })
+  // },
 
   createWidgets () {
     logger.log('Inside Create Widgets')
-    new ChaptersScreen(this.state.rtl).start()
+    this.screen = new ChaptersScreen()
+    this.screen.start()
   },
 
   build () {
@@ -24,6 +25,11 @@ Page({
       if (restorePlayer()) return
     }
 
-    this.createWidgets()
+    createLoadingWidget(() => this.createWidgets())
+    getApp()._options.globalData.basePage.getChapters()
+  },
+
+  onDestroy () {
+    if (this.screen) this.screen.stop()
   }
 })
