@@ -1,16 +1,16 @@
 /* global Page */
-import { back } from '@zos/router'
+import { back } from 'zeppos-cross-api/router'
 import {
   getClipboard,
   getImageViewTempFile,
   getPasteMode,
   setClipboard,
   setImageViewTempFile, setPasteMode
-} from '../../libs/config/default'
-import { _ } from '../../libs/i18n/lang'
-import { ListScreen } from '../../libs/mmk/ListScreen'
-import { FsTools, Path } from '../../libs/mmk/Path'
-import { openPage } from '../../libs/utils'
+} from '../../lib/config/default'
+import { _ } from '../../lib/i18n/lang'
+import { ListScreen } from '../../lib/mmk/ListScreen'
+import { FsTools, Path } from '../../lib/mmk/Path'
+import { openPage } from '../../lib/utils'
 
 class FileEditScreen extends ListScreen {
   constructor (data) {

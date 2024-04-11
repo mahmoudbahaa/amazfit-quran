@@ -1,8 +1,8 @@
 /* global Page */
-import { Path } from '../../../libs/mmk/Path'
-import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, SCREEN_WIDTH, WIDGET_WIDTH } from '../../../libs/mmk/UiParams'
-import hmUI from '@zos/ui'
-import { readSync } from '@zos/fs'
+import { readSync } from 'zeppos-cross-api/fs'
+import hmUI from 'zeppos-cross-api/ui'
+import { Path } from '../../../lib/mmk/Path'
+import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, SCREEN_WIDTH, WIDGET_WIDTH } from '../../../lib/mmk/UiParams'
 
 class HexdumpScreen {
   constructor (data) {

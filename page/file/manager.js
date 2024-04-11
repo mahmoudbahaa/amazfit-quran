@@ -1,11 +1,11 @@
 /* global Page */
-import { resetPageBrightTime, setPageBrightTime } from '@zos/display'
-import hmUI from '@zos/ui'
-import { getLastPath, setLastPath } from '../../libs/config/default'
-import { _ } from '../../libs/i18n/lang'
-import { FsTools, Path } from '../../libs/mmk/Path'
-import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, WIDGET_WIDTH } from '../../libs/mmk/UiParams'
-import { openPage } from '../../libs/utils'
+import { resetPageBrightTime, setPageBrightTime } from 'zeppos-cross-api/display'
+import hmUI from 'zeppos-cross-api/ui'
+import { getLastPath, setLastPath } from '../../lib/config/default'
+import { _ } from '../../lib/i18n/lang'
+import { FsTools, Path } from '../../lib/mmk/Path'
+import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, WIDGET_WIDTH } from '../../lib/mmk/UiParams'
+import { openPage } from '../../lib/utils'
 
 class FileManagerScreen {
   constructor (params) {

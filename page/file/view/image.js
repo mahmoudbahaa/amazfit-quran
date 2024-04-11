@@ -1,8 +1,8 @@
 /* global Page */
-import { O_RDONLY, openAssetsSync, readSync } from '@zos/fs'
-import { showToast } from '@zos/interaction'
-import hmUI from '@zos/ui'
-import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../../libs/mmk/UiParams'
+import { O_RDONLY, openAssetsSync, readSync } from 'zeppos-cross-api/fs'
+import { showToast } from 'zeppos-cross-api/interaction'
+import hmUI from 'zeppos-cross-api/ui'
+import { SCREEN_HEIGHT, SCREEN_WIDTH } from '../../../lib/mmk/UiParams'
 
 class ImageViewScreen {
   constructor (data) {

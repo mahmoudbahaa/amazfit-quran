@@ -2,10 +2,12 @@
 import { SettingsLangScreen } from '../../components/settingsLangScreen'
 
 Page({
-  onInit () {
-    console.log('hello')
+  state: {
+    screen: undefined
+  },
 
-    this.screen = new SettingsLangScreen()
-    this.screen.start()
+  onInit () {
+    this.state.screen = new SettingsLangScreen()
+    this.state.screen.start()
   }
 })

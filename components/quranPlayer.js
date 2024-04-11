@@ -1,10 +1,10 @@
 /* global getApp */
-import { create, id } from '@zos/media'
-import { Time } from '@zos/sensor'
-import { log } from '@zos/utils'
-import { getRecitation, getVerseInfo, hasVerseInfo } from '../libs/config/default'
-import { IS_EMULATOR, NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../libs/constants'
-import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../libs/utils'
+import { create, id } from 'zeppos-cross-api/media'
+import { Time } from 'zeppos-cross-api/sensor'
+import { log } from 'zeppos-cross-api/utils'
+import { getRecitation, getVerseInfo, hasVerseInfo } from '../lib/config/default'
+import { IS_EMULATOR, NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../lib/constants'
+import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../lib/utils'
 
 const time = new Time()
 const VOLUME_INCREMENT = 10
@@ -236,14 +236,12 @@ export class QuranPlayer {
           getApp()._options.globalData.playerInfo.curVerse = this.#verses[that.#curPlayVerse]
           player.start()
         } else {
-          console.log('hi15')
           logger.log('=== prepare fail ===')
           player.release()
         }
       })
 
       player.addEventListener(player.event.COMPLETE, (result) => {
-        console.log('hi12')
         that.#playVerse()
       })
     } else {

@@ -1,9 +1,9 @@
 /* global getApp, Page */
-import { setWakeUpRelaunch } from '@zos/display'
-import { exit } from '@zos/router'
-import { Time } from '@zos/sensor'
-import hmUI from '@zos/ui'
-import { log as Logger } from '@zos/utils'
+import { setWakeUpRelaunch } from 'zeppos-cross-api/display'
+import { exit } from 'zeppos-cross-api/router'
+import { Time } from 'zeppos-cross-api/sensor'
+import hmUI from 'zeppos-cross-api/ui'
+import { log as Logger } from 'zeppos-cross-api/utils'
 import {
   DECREASE_VOLUME,
   EXIT,
@@ -16,13 +16,13 @@ import {
   START,
   STOP
 } from '../components/quranPlayer'
-import { getVerseInfo, setPlayerInfo } from '../libs/config/default'
-import { getVerseJuz } from '../libs/config/juzs.js'
-import { getVerseText } from '../libs/config/verse'
-import { MIN_TIMEOUT_DURATION, NUM_VERSES } from '../libs/constants.js'
-import { _, isRtlLang } from '../libs/i18n/lang'
-import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../libs/mmk/UiParams'
-import { parseQuery } from '../libs/utils.js'
+import { getVerseInfo, setPlayerInfo } from '../lib/config/default'
+import { getVerseJuz } from '../lib/config/juzs.js'
+import { getVerseText } from '../lib/config/verse'
+import { MIN_TIMEOUT_DURATION, NUM_VERSES } from '../lib/constants.js'
+import { _, isRtlLang } from '../lib/i18n/lang'
+import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../lib/mmk/UiParams'
+import { parseQuery } from '../lib/utils.js'
 import * as Styles from './style.r.layout'
 
 const time = new Time()

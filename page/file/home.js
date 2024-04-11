@@ -1,9 +1,9 @@
 /* global Page */
-import { back } from '@zos/router'
-import { getFontSize } from '../../libs/config/default'
-import { _ } from '../../libs/i18n/lang'
-import { ListScreen } from '../../libs/mmk/ListScreen'
-import { openPage } from '../../libs/utils'
+import { back } from 'zeppos-cross-api/router'
+import { getFontSize } from '../../lib/config/default'
+import { _ } from '../../lib/i18n/lang'
+import { ListScreen } from '../../lib/mmk/ListScreen'
+import { openPage } from '../../lib/utils'
 
 class SettingsHomePage extends ListScreen {
   constructor () {

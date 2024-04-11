@@ -1,5 +1,6 @@
-import hmUI from '@zos/ui'
-import { px } from '@zos/utils'
+import hmUI from 'zeppos-cross-api/ui'
+import { px } from 'zeppos-cross-api/utils'
+import { isRtlLang } from '../lib/i18n/lang'
 import {
   BASE_FONT_SIZE,
   BLACK,
@@ -7,8 +8,7 @@ import {
   SCREEN_HEIGHT,
   SCREEN_WIDTH,
   SECONDARY_COLOR
-} from '../libs/mmk/UiParams'
-import { isRtlLang } from '../libs/i18n/lang'
+} from '../lib/mmk/UiParams'
 
 const ICON_WIDTH = BASE_FONT_SIZE * 2
 export const ROW_STYLE = {

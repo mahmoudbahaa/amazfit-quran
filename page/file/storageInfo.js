@@ -1,11 +1,11 @@
 /* global Page */
-import { getDiskInfo } from '@zos/device'
-import hmUI from '@zos/ui'
-import { px } from '@zos/utils'
-import { getFontSize, getStorageInfoLine, setStorageInfoLine } from '../../libs/config/default'
-import { MIN_TIMEOUT_DURATION } from '../../libs/constants'
-import { _ } from '../../libs/i18n/lang'
-import { FsTools } from '../../libs/mmk/Path'
+import { getDiskInfo } from 'zeppos-cross-api/device'
+import hmUI from 'zeppos-cross-api/ui'
+import { px } from 'zeppos-cross-api/utils'
+import { getFontSize, getStorageInfoLine, setStorageInfoLine } from '../../lib/config/default'
+import { MIN_TIMEOUT_DURATION } from '../../lib/constants'
+import { _ } from '../../lib/i18n/lang'
+import { FsTools } from '../../lib/mmk/Path'
 import {
   BLACK, MAIN_COLOR,
   SCREEN_HEIGHT,
@@ -13,8 +13,8 @@ import {
   SCREEN_MARGIN_Y,
   SCREEN_WIDTH,
   WIDGET_WIDTH
-} from '../../libs/mmk/UiParams'
-import { openPage } from '../../libs/utils'
+} from '../../lib/mmk/UiParams'
+import { openPage } from '../../lib/utils'
 
 const thisPage = 'page/file/storageInfo'
 class StorageInfoScreen {

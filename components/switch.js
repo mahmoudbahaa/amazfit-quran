@@ -1,5 +1,5 @@
-import hmUI from '@zos/ui'
-import { px } from '@zos/utils'
+import hmUI from 'zeppos-cross-api/ui'
+import { px } from 'zeppos-cross-api/utils'
 
 export function createSwitch (rtl, x, y, initialState, checkedChangeFunc) {
   return hmUI.createWidget(hmUI.widget.SLIDE_SWITCH, {

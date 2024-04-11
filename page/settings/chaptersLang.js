@@ -1,8 +1,8 @@
 /* global getApp, Page */
-import { showToast } from '@zos/interaction'
+import { showToast } from 'zeppos-cross-api/interaction'
 import { createLoadingWidget } from '../../components/loadingWidget'
 import { SettingsLangScreen } from '../../components/settingsLangScreen'
-import { getChaptersLang, setChaptersLang } from '../../libs/config/default'
+import { getChaptersLang, setChaptersLang } from '../../lib/config/default'
 Page({
   onInit () {
     createLoadingWidget((data) => this.onLoadingComplete(data))

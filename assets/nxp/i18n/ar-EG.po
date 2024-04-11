@@ -95,8 +95,6 @@ msgid "Supported:"
 msgstr "اللغات المدعومة:"
 
 msgid "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog."
-#msgstr "نص حكيم له سر قاطع وذو شأن عظيم مكتوب على ثوب أخضر ومغلف بجلد أزرق"
-#msgstr "صِف خَلقَ خَودِ كَمِثلِ الشَمسِ إِذ بَزَغَت — يَحظى الضَجيعُ بِها نَجلاءَ مِعطارِ"
 msgstr "بسم الله الرحمن الرحيم (١) الحمد لله رب العالمين (٢) الرحمن الرحيم (٣) مالك بوم الدين (٤) إياك نعبد وإياك نستعين (٥) إهدنا الصراط المستقيم (٦) صراط الذين أنعمت عليهم غير المغضوب عليهم ولا الضالين (٧)"
 
 msgid "Total"

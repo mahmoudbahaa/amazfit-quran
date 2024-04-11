@@ -1,4 +1,4 @@
-import * as hmUI from '@zos/ui';
+import * as hmUI from 'zeppos-cross-api/ui'
 export const STYLE_DISPLAY = {
   x: 0,
   text_size: 80,
@@ -7,7 +7,7 @@ export const STYLE_DISPLAY = {
   w: 192,
   h: 96,
   color: 0xffffff
-};
+}
 export const STYLE_EDIT_BTN = {
   text_size: 48,
   align_h: hmUI.align.CENTER_H,
@@ -15,13 +15,13 @@ export const STYLE_EDIT_BTN = {
   h: 96,
   w: 50,
   color: 0xAAAAAA
-};
+}
 export const STYLE_EDIT_INC = {
-  text: "+",
+  text: '+',
   x: 142
-};
+}
 
 export const STYLE_EDIT_DEG = {
-  text: "−",
+  text: '−',
   x: 0
 }

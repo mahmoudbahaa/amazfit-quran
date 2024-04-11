@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2021",
+    "target": "ES2017",
     "checkJs": true
   },
-  "exclude": ["node_modules", "**/node_modules/*"],
-  "files": ["node_modules/@zeppos/device-types/dist/index.d.ts"]
+  "exclude": ["node_modules", "**/node_modules/*", "dist", "dist/**"]
 }

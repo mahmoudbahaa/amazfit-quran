@@ -1,8 +1,8 @@
 /* global getApp */
-import * as hmUI from '@zos/ui'
-import { px } from '@zos/utils'
-import { SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_COLOR_TXT } from '../libs/mmk/UiParams'
-import { MIN_TIMEOUT_DURATION } from '../libs/constants'
+import * as hmUI from 'zeppos-cross-api/ui'
+import { px } from 'zeppos-cross-api/utils'
+import { MIN_TIMEOUT_DURATION } from '../lib/constants'
+import { SCREEN_HEIGHT, SCREEN_WIDTH, STATUS_COLOR_TXT } from '../lib/mmk/UiParams'
 
 export function createLoadingWidget (onLoadingComplete) {
   const loadingAnim = {}

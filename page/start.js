@@ -1,7 +1,7 @@
 /* global getApp, Page */
 import { BasePage } from '@zeppos/zml/base-page'
-import { replace } from '@zos/router'
-import { log } from '@zos/utils'
+import { replace } from 'zeppos-cross-api/router'
+import { log } from 'zeppos-cross-api/utils'
 import { deleteLoadingWidget, updateStatus } from '../components/loadingWidget'
 import { quranComApiModule } from '../components/quran-com-api-module'
 import {
@@ -10,11 +10,11 @@ import {
   removeChaptersListRows,
   setChapters,
   setSavedChaptersLang
-} from '../libs/config/default.js'
-import { setEnChapters } from '../libs/config/enChapters.js'
-import { setVerseInfo } from '../libs/config/verse.js'
-import { MIN_TIMEOUT_DURATION } from '../libs/constants'
-import { DEVICE_LANG, _ } from '../libs/i18n/lang'
+} from '../lib/config/default.js'
+import { setEnChapters } from '../lib/config/enChapters.js'
+import { setVerseInfo } from '../lib/config/verse.js'
+import { MIN_TIMEOUT_DURATION } from '../lib/constants'
+import { DEVICE_LANG, _ } from '../lib/i18n/lang'
 
 const logger = log.getLogger('start.page')
 

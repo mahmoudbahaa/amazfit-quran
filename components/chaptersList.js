@@ -1,17 +1,18 @@
 /* global getApp */
-import { push } from '@zos/router'
-import hmUI from '@zos/ui'
+import { getScrollTop } from 'zeppos-cross-api/page'
+import { push } from 'zeppos-cross-api/router'
 import {
   getChapter, getChaptersLang,
   getChaptersListRow,
+  getFontSize,
   getLang,
   setChaptersListRow,
   useSimpleSurahName
-} from '../libs/config/default'
-import { getVerseMapping } from '../libs/config/juzs'
-import { NUM_JUZS, NUM_PAGES } from '../libs/constants'
-import { _, isRtlLang } from '../libs/i18n/lang'
-import { ListScreen } from '../libs/mmk/ListScreen'
+} from '../lib/config/default'
+import { getVerseMapping } from '../lib/config/juzs'
+import { NUM_JUZS, NUM_PAGES } from '../lib/constants'
+import { _, isRtlLang } from '../lib/i18n/lang'
+import { ListScreen } from '../lib/mmk/ListScreen'
 import {
   MAIN_COLOR,
   MAIN_COLOR_TXT,
@@ -19,7 +20,7 @@ import {
   SECONDARY_COLOR_TXT,
   WARNING_COLOR,
   WARNING_COLOR_TXT
-} from '../libs/mmk/UiParams'
+} from '../lib/mmk/UiParams'
 import { PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from './quranPlayer'
 
 const playerPage = 'page/player'
@@ -32,6 +33,7 @@ export class ChaptersScreen extends ListScreen {
 
   constructor () {
     super(isRtlLang())
+    this.fontSize = getFontSize()
   }
 
   start () {
@@ -63,7 +65,7 @@ export class ChaptersScreen extends ListScreen {
     const row = getRow(rowNumber)
     row.card = {
       callback: () => {
-        getApp()._options.globalData.scrollTop = this.vc.getProperty(hmUI.prop.POS_Y)
+        getApp()._options.globalData.scrollTop = getScrollTop()
         push({
           url: playerPage,
           params: `type=${row.type}&number=${row.number}`
@@ -109,7 +111,8 @@ export function getRow (rowNumber) {
   for (let i = 0; i < NUM_JUZS; i++) {
     rows.push(addJuzRow(i + 1))
     const verseMapping = getVerseMapping(i)
-    for (const surahNumber in verseMapping) {
+    for (const surahNumberAttr in verseMapping) {
+      const surahNumber = typeof surahNumberAttr === 'number' ? surahNumberAttr : parseInt(surahNumberAttr)
       if (lastSurahNumber === surahNumber) continue
 
       const chapter = getChapter(surahNumber - 1)

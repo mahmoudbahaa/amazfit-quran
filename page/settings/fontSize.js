@@ -1,7 +1,7 @@
 /* global Page */
-import hmUI from '@zos/ui'
-import { getFontSize, setFontSize } from '../../libs/config/default'
-import { FontSizeSetupScreen } from '../../libs/mmk/FontSizeSetupScreen'
+import hmUI from 'zeppos-cross-api/ui'
+import { getFontSize, setFontSize } from '../../lib/config/default'
+import { FontSizeSetupScreen } from '../../lib/mmk/FontSizeSetupScreen'
 
 class ConfiguredFontSizeSetupScreen extends FontSizeSetupScreen {
   constructor () {

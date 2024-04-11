@@ -1,9 +1,9 @@
 import { quranComApiModule } from '../components/quran-com-api-module'
 import {
-  ERROR_RETRY_AFTER,
-  MAX_ERROR_RETRIES,
-  MIN_TIMEOUT_DURATION
-} from '../libs/constants'
+    ERROR_RETRY_AFTER,
+    MAX_ERROR_RETRIES,
+    MIN_TIMEOUT_DURATION
+} from '../lib/constants'
 
 export class QuranVersesDownloader {
   #verses

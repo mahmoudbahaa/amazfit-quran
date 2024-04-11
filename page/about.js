@@ -1,7 +1,7 @@
 /* global Page */
-import { px } from '@zos/utils'
-import { BaseAboutScreen } from '../libs/mmk/BaseAboutScreen'
-import { _, isRtlLang } from '../libs/i18n/lang'
+import { px } from 'zeppos-cross-api/utils'
+import { _, isRtlLang } from '../lib/i18n/lang'
+import { BaseAboutScreen } from '../lib/mmk/BaseAboutScreen'
 
 const majorVersion = 1
 const minorVersion = 0

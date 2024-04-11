@@ -1,11 +1,11 @@
 /* global Page */
-import { setWakeUpRelaunch } from '@zos/display'
-import { exit } from '@zos/router'
-import { showToast } from '@zos/ui'
-import { clearConfig, clearData, getFontSize } from '../libs/config/default'
-import { _ } from '../libs/i18n/lang'
-import { ListScreen } from '../libs/mmk/ListScreen'
-import { openPage } from '../libs/utils'
+import { setWakeUpRelaunch } from 'zeppos-cross-api/display'
+import { exit } from 'zeppos-cross-api/router'
+import { showToast } from 'zeppos-cross-api/ui'
+import { clearConfig, clearData, getFontSize } from '../lib/config/default'
+import { _ } from '../lib/i18n/lang'
+import { ListScreen } from '../lib/mmk/ListScreen'
+import { openPage } from '../lib/utils'
 
 class HomePage extends ListScreen {
   constructor () {
@@ -61,6 +61,13 @@ class HomePage extends ListScreen {
 }
 
 Page({
+  state: {
+    /**
+     * @type {HomePage}
+     */
+    screen: undefined
+  },
+
   onInit () {
     setWakeUpRelaunch({
       relaunch: true
@@ -68,12 +75,12 @@ Page({
   },
 
   build () {
-    this.screen = new HomePage()
-    this.screen.start()
+    this.state.screen = new HomePage()
+    this.state.screen.start()
   },
 
   onDestroy () {
     console.log('Home page onDestroy')
-    this.screen.stop()
+    if (this.state.screen) this.state.screen.stop()
   }
 })

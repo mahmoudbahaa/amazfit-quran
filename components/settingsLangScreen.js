@@ -1,7 +1,7 @@
-import { back } from '@zos/router'
-import { getFontSize, getLang, setLang } from '../libs/config/default'
-import { _, DEVICE_LANG, isRtlLang } from '../libs/i18n/lang'
-import { ListScreen } from '../libs/mmk/ListScreen'
+import { back } from 'zeppos-cross-api/router'
+import { getFontSize, getLang, setLang } from '../lib/config/default'
+import { DEVICE_LANG, _, isRtlLang } from '../lib/i18n/lang'
+import { ListScreen } from '../lib/mmk/ListScreen'
 
 const UI_LANGS = {
   en: 'English',
@@ -24,7 +24,7 @@ export class SettingsLangScreen extends ListScreen {
 
   start () {
     const osLocale = DEVICE_LANG()
-    if (!this.current) this.current = false
+    if (!this.current) this.current = 'false'
 
     this.localeRow(`${_('System ')}(${osLocale})`, 'false')
     this.headline(_('Supported:'))

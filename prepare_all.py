@@ -1,1 +1,0 @@
-/home/mahmoud/Programs/ZeppOS/amazfit-quran/zeppos-cross-api/prepare_all.py

@@ -1,8 +1,8 @@
 /* global getApp, Page */
-import { log } from '@zos/utils'
+import { log } from 'zeppos-cross-api/utils'
 import { ChaptersScreen } from '../components/chaptersList'
 import { createLoadingWidget } from '../components/loadingWidget'
-import { restorePlayer } from '../libs/utils'
+import { restorePlayer } from '../lib/utils'
 
 const logger = log.getLogger('select.page')
 

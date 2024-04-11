@@ -1,10 +1,10 @@
 /* global Page */
-import { resetPageBrightTime, setPageBrightTime } from '@zos/display'
-import { O_RDONLY, closeSync, readSync } from '@zos/fs'
-import hmUI from '@zos/ui'
-import { getFontSize } from '../../../libs/config/default'
-import { FsTools, Path } from '../../../libs/mmk/Path'
-import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, SCREEN_WIDTH, WIDGET_WIDTH } from '../../../libs/mmk/UiParams'
+import { resetPageBrightTime, setPageBrightTime } from 'zeppos-cross-api/display'
+import { O_RDONLY, closeSync, readSync } from 'zeppos-cross-api/fs'
+import hmUI from 'zeppos-cross-api/ui'
+import { getFontSize } from '../../../lib/config/default'
+import { FsTools, Path } from '../../../lib/mmk/Path'
+import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, SCREEN_WIDTH, WIDGET_WIDTH } from '../../../lib/mmk/UiParams'
 
 class TextViewScreen {
   constructor (data) {
