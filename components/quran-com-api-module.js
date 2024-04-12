@@ -1,56 +1,14 @@
 const baseUrl = 'https://api.quran.com/api/v4/'
 
 export const quranComApiModule = {
-  get (caller, onSuccess, onError, url, resourceName, attrsToDelete = undefined) {
-    caller.httpRequest({
-      method: 'get',
-      url
-    }).then((result) => {
-      if (result.status >= 300 || result.status < 200) {
-        console.log(`Error${result.statusText}`)
-        if (onError) {
-          onError()
-        }
-        return
-      }
-
-      if (attrsToDelete !== undefined) {
-        result.body[resourceName].forEach((resource) => {
-          attrsToDelete.forEach((attr) => {
-            delete resource[attr]
-          })
-        })
-      }
-
-      if (!result.body[resourceName]) {
-        console.log('OOPS')
-        console.log(url)
-        console.log(JSON.stringify(result.body))
-        console.log(result.status)
-        console.log(result.statusText)
-      }
-
-      onSuccess(result.body[resourceName])
-    }).catch((error) => {
-      console.log('error=>', error)
-      if (onError) {
-        onError(error)
-      }
-    })
-  },
-
   async getByService (service, onSuccess, onError, url, resourceName, attrsToDelete = undefined) {
-    const result = await service.fetch({
+    // @ts-ignore
+    const result = await fetch({
       method: 'get',
       url
-    }).catch((error) => {
-      service.log('error=>', error)
-      if (onError) {
-        onError(error)
-      }
     })
 
-    if (result.status >= 300 && result.status < 200) {
+    if (!result.ok) {
       service.log(`Error${result.statusText}`)
       if (onError) {
         onError()
@@ -75,17 +33,6 @@ export const quranComApiModule = {
     }
 
     onSuccess(result.body[resourceName])
-  },
-
-  getChapters (caller, surahLangIsoCode, onSuccess, onError) {
-    this.get(
-      caller,
-      onSuccess,
-      onError,
-      `${baseUrl}chapters?language=${surahLangIsoCode}`,
-      'chapters',
-      ['id', 'bismillah_pre']
-    )
   },
 
   async getVersesAudioPaths (caller, recitationId, onSuccess, onError) {

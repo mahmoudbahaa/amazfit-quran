@@ -1,13 +1,13 @@
 /* global Page */
 import { back } from 'zeppos-cross-api/router'
 import { getFontSize } from '../../lib/config/default'
-import { _ } from '../../lib/i18n/lang'
+import { _, isRtlLang } from '../../lib/i18n/lang'
 import { ListScreen } from '../../lib/mmk/ListScreen'
 import { openPage } from '../../lib/utils'
 
 class SettingsHomePage extends ListScreen {
   constructor () {
-    super()
+    super(isRtlLang())
     this.fontSize = getFontSize()
   }
 

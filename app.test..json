@@ -1,8 +1,8 @@
 {
   "configVersion": "v2",
   "app": {
-    "appId": 1050695,
-    "appName": "Quran",
+    "appId": 9999999,
+    "appName": "Test",
     "appType": "app",
     "version": {
       "code": 1,
@@ -10,10 +10,11 @@
     },
     "icon": "icon.png",
     "vender": "mahmoudbahaa",
-    "description": "Quran app for downloading and playing Quran Chapters"
+    "description": "Test"
   },
   "permissions": [
     "data:os.device.info",
+    "device:os.alarm",
     "device:os.ble",
     "device:os.local_storage"
   ],
@@ -26,10 +27,11 @@
   },
   "i18n": {
     "en-US": {
-      "appName": "Quran"
+      "appName": "Test"
     }
   },
   "defaultLanguage": "en-US",
+  "debug": true,
   "targets": {
     "band-7": {
       "platforms": [
@@ -103,14 +105,6 @@
     "nxp": {
       "platforms": [
         {
-          "name": "gts3",
-          "deviceSource": 224
-        },
-        {
-          "name": "gts3-2",
-          "deviceSource": 225
-        },
-        {
           "name": "gtr3pro",
           "deviceSource": 229
         },
@@ -129,6 +123,62 @@
         {
           "name": "gtr3-2",
           "deviceSource": 227
+        },
+        {
+          "name": "t-rex-ultra",
+          "deviceSource": 6553856
+        },
+        {
+          "name": "t-rex-ultra",
+          "deviceSource": 6553857
+        },
+        {
+          "name": "falcon",
+          "deviceSource": 414
+        },
+        {
+          "name": "falcon-2",
+          "deviceSource": 415
+        },
+        {
+          "name": "cheetah",
+          "deviceSource": 8192256
+        },
+        {
+          "name": "cheetah-2",
+          "deviceSource": 8192257
+        },
+        {
+          "name": "cheetah-pro",
+          "deviceSource": 8126720
+        },
+        {
+          "name": "cheetah-pro-2",
+          "deviceSource": 8126721
+        },
+        {
+          "name": "gts3",
+          "deviceSource": 224
+        },
+        {
+          "name": "gts3-2",
+          "deviceSource": 225
+        },
+        {
+          "name": "t-rex-2",
+          "deviceSource": 418
+        },
+        {
+          "name": "t-rex-2-2",
+          "deviceSource": 419
+        },
+        {
+          "name": "gtr-4",
+          "deviceSource": 7930112
+        },
+        {
+          "name": "gtr-4-2",
+          "deviceSource": 7930113
         }
       ],
       "designWidth": 480,

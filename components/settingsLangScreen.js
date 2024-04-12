@@ -27,7 +27,7 @@ export class SettingsLangScreen extends ListScreen {
     if (!this.current) this.current = 'false'
 
     this.localeRow(`${_('System ')}(${osLocale})`, 'false')
-    this.headline(_('Supported:'))
+    this.headlineRow(_('Supported:'))
 
     const keys = []
     for (const key in this.availableLanguages) {

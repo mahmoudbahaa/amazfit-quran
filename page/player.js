@@ -1,32 +1,23 @@
-/* global getApp, Page */
+/* global Page */
 import { setWakeUpRelaunch } from 'zeppos-cross-api/display'
 import { exit } from 'zeppos-cross-api/router'
 import { Time } from 'zeppos-cross-api/sensor'
-import hmUI from 'zeppos-cross-api/ui'
-import { log as Logger } from 'zeppos-cross-api/utils'
-import {
-  DECREASE_VOLUME,
-  EXIT,
-  INCREASE_VOLUME,
-  NEXT,
-  PAUSE,
-  PLAY,
-  PREVIOUS,
-  QuranPlayer,
-  START,
-  STOP
-} from '../components/quranPlayer'
+import { createWidget, event, prop, setStatusBarVisible, widget } from 'zeppos-cross-api/ui'
+import { log } from 'zeppos-cross-api/utils'
+import { PlayerInfo } from '../components/player/playerInfoHolder'
+import { Player } from '../components/player/quranPlayerHolder'
+import { createEmulatorScreen } from '../components/screenEmulator'
 import { getVerseInfo, setPlayerInfo } from '../lib/config/default'
-import { getVerseJuz } from '../lib/config/juzs.js'
+import { getVerseJuz } from '../lib/config/juzs'
 import { getVerseText } from '../lib/config/verse'
-import { MIN_TIMEOUT_DURATION, NUM_VERSES } from '../lib/constants.js'
+import { DECREASE_VOLUME, EXIT, INCREASE_VOLUME, MIN_TIMEOUT_DURATION, NEXT, NUM_VERSES, PAUSE, PLAY, PREVIOUS, START, STOP } from '../lib/constants'
 import { _, isRtlLang } from '../lib/i18n/lang'
 import { ICON_SIZE_MEDIUM, MAIN_COLOR, SCREEN_WIDTH } from '../lib/mmk/UiParams'
-import { parseQuery } from '../lib/utils.js'
+import { parseQuery } from '../lib/utils'
 import * as Styles from './style.r.layout'
 
+const logger = log.getLogger('player page')
 const time = new Time()
-const logger = Logger.getLogger('player page')
 
 Page({
   state: {
@@ -42,7 +33,9 @@ Page({
       relaunch: true
     })
 
-    getApp()._options.globalData.player = new QuranPlayer()
+    setStatusBarVisible(false)
+
+    Player.init()
     const params = parseQuery(paramsString)
     this.state.number = parseInt(params.number)
     this.state.type = params.type
@@ -61,17 +54,18 @@ Page({
   },
   onDestroy () {
     logger.log('page on destroy invoke')
-
-    delete getApp()._options.globalData.playerInfo.verseStartTime
-    delete getApp()._options.globalData.playerInfo.curDownloadedVerse
-    logger.log('Saving Player Info' + JSON.stringify(getApp()._options.globalData.playerInfo))
-    setPlayerInfo(getApp()._options.globalData.playerInfo)
+    setPlayerInfo({
+      type: PlayerInfo.type,
+      number: PlayerInfo.number,
+      curVerse: PlayerInfo.curVerse
+    })
 
     logger.log('Exiting Player')
-    if (getApp()._options.globalData.player) {
-      getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
-      getApp()._options.globalData.player = undefined
+    const player = Player.clear()
+    if (player) {
+      player.doAction(this.getServiceParam(EXIT))
     }
+
     if (this.state.interval) {
       clearInterval(this.state.interval)
     }
@@ -92,7 +86,7 @@ Page({
   },
 
   getJuz (v) {
-    return _(getVerseJuz(v))
+    return _(getVerseJuz(v).toString())
   },
 
   getChapter (v) {
@@ -113,43 +107,44 @@ Page({
   },
 
   build () {
-    hmUI.createWidget(hmUI.widget.STROKE_RECT, {
+    createEmulatorScreen()
+    createWidget(widget.STROKE_RECT, {
       ...Styles.VERSE_PLAYER_BORDER
     })
 
-    hmUI.createWidget(hmUI.widget.CIRCLE, {
+    createWidget(widget.CIRCLE, {
       ...Styles.JUZ_CIRCLE
     })
 
-    const juzLabel = hmUI.createWidget(hmUI.widget.TEXT, {
+    const juzLabel = createWidget(widget.TEXT, {
       ...Styles.JUZ_TEXT
     })
 
-    hmUI.createWidget(hmUI.widget.CIRCLE, {
+    createWidget(widget.CIRCLE, {
       ...Styles.CHAPTER_CIRCLE
     })
 
-    const chapterLabel = hmUI.createWidget(hmUI.widget.TEXT, {
+    const chapterLabel = createWidget(widget.TEXT, {
       ...Styles.CHAPTER_TEXT
     })
 
-    const verseText = hmUI.createWidget(hmUI.widget.TEXT, {
+    const verseText = createWidget(widget.TEXT, {
       ...Styles.VERSE_PLAYER_TEXT
     })
 
-    const verseInfo = hmUI.createWidget(hmUI.widget.TEXT, {
+    const verseInfo = createWidget(widget.TEXT, {
       ...Styles.VERSE_PLAYER_LABEL,
       text: ''
     })
 
-    hmUI.createWidget(hmUI.widget.IMG, {
+    createWidget(widget.IMG, {
       ...Styles.CLEAR_DISPLAY_ICON
-    }).addEventListener(hmUI.event.CLICK_UP, () => {
+    }).addEventListener(event.CLICK_UP, () => {
       if (this.state.interval) {
-        juzLabel.setProperty(hmUI.prop.TEXT, '')
-        chapterLabel.setProperty(hmUI.prop.TEXT, '')
-        verseInfo.setProperty(hmUI.prop.TEXT, '')
-        verseText.setProperty(hmUI.prop.TEXT, '')
+        juzLabel.setProperty(prop.TEXT, '')
+        chapterLabel.setProperty(prop.TEXT, '')
+        verseInfo.setProperty(prop.TEXT, '')
+        verseText.setProperty(prop.TEXT, '')
         clearInterval(this.state.interval)
         this.state.interval = undefined
       } else {
@@ -157,9 +152,9 @@ Page({
       }
     })
 
-    hmUI.createWidget(hmUI.widget.IMG, {
+    createWidget(widget.IMG, {
       ...Styles.EXIT_ICON
-    }).addEventListener(hmUI.event.CLICK_UP, () => {
+    }).addEventListener(event.CLICK_UP, () => {
       exit()
     })
 
@@ -171,7 +166,7 @@ Page({
     let lastVersePartIndex
     let elapsed
     const updater = (that) => {
-      verse = getApp()._options.globalData.playerInfo.curVerse
+      verse = PlayerInfo.curVerse
       if (verse !== undefined) {
         // A verse is being played
         if (lastVerse !== verse) {
@@ -185,7 +180,7 @@ Page({
           verseTextText = lastVerseText
         } else {
           // There is still more parts of the verse check the need to go to next part
-          elapsed = time.getTime() - getApp()._options.globalData.playerInfo.verseStartTime
+          elapsed = time.getTime() - PlayerInfo.verseStartTime
           if (elapsed > lastVerseInfo.mapping[lastVersePartIndex]) {
             // Need to go to next part
             lastVersePartIndex++
@@ -197,15 +192,15 @@ Page({
         }
       } else {
         // Still Downloading
-        verse = getApp()._options.globalData.playerInfo.curDownloadedVerse
+        verse = PlayerInfo.curDownloadedVerse
         if (verse === undefined) return
         verseTextText = that.getDownloadLabel(verse)
       }
 
-      verseInfo.setProperty(hmUI.prop.TEXT, that.getVerseLabel(verse))
-      juzLabel.setProperty(hmUI.prop.TEXT, that.getJuz(verse))
-      chapterLabel.setProperty(hmUI.prop.TEXT, that.getChapter(verse))
-      verseText.setProperty(hmUI.prop.TEXT, verseTextText)
+      verseInfo.setProperty(prop.TEXT, that.getVerseLabel(verse))
+      juzLabel.setProperty(prop.TEXT, that.getJuz(verse))
+      chapterLabel.setProperty(prop.TEXT, that.getChapter(verse))
+      verseText.setProperty(prop.TEXT, verseTextText)
     }
 
     this.state.interval = setInterval(() => updater(this), MIN_TIMEOUT_DURATION)
@@ -228,7 +223,7 @@ Page({
       const x = left ? Styles.PLAYER_BTN_X : (SCREEN_WIDTH - Styles.PLAYER_BTN_X - Styles.PLAYER_BTN_W)
       const y = Styles.PLAYER_BTN_Y + Styles.PLAYER_BTN_OY * (playerButton.left ? startYLeft++ : startYRight++)
 
-      const bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+      const bg = createWidget(widget.FILL_RECT, {
         ...Styles.PLAYER_BTN,
         x,
         y,
@@ -237,8 +232,8 @@ Page({
         color: MAIN_COLOR
       })
 
-      bg.setProperty(hmUI.prop.VISIBLE, false)
-      const img = hmUI.createWidget(hmUI.widget.IMG, {
+      bg.setProperty(prop.VISIBLE, false)
+      const img = createWidget(widget.IMG, {
         ...Styles.PLAYER_BTN,
         x,
         y,
@@ -251,21 +246,21 @@ Page({
       })
 
       playerButton.img = img
-      img.addEventListener(hmUI.event.CLICK_UP, () => {
-        bg.setProperty(hmUI.prop.VISIBLE, true)
-        setTimeout(() => bg.setProperty(hmUI.prop.VISIBLE, false), MIN_TIMEOUT_DURATION)
-        getApp()._options.globalData.player.doAction(this.getServiceParam(playerButton.action))
+      img.addEventListener(event.CLICK_UP, () => {
+        bg.setProperty(prop.VISIBLE, true)
+        setTimeout(() => bg.setProperty(prop.VISIBLE, false), MIN_TIMEOUT_DURATION)
+        Player.get().doAction(this.getServiceParam(playerButton.action))
 
         if (playerButton.action === PLAY) {
           playPauseButton.action = PAUSE
-          playPauseButton.img.setProperty(hmUI.prop.SRC, 'pause.png')
+          playPauseButton.img.setProperty(prop.SRC, 'pause.png')
         } else if (playerButton.action === PAUSE || playerButton.action === STOP) {
           playPauseButton.action = PLAY
-          playPauseButton.img.setProperty(hmUI.prop.SRC, 'play.png')
+          playPauseButton.img.setProperty(prop.SRC, 'play.png')
         }
       })
     })
 
-    getApp()._options.globalData.player.doAction(this.getServiceParam(START))
+    Player.get().doAction(this.getServiceParam(START))
   }
 })

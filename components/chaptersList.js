@@ -1,6 +1,5 @@
 /* global getApp */
-import { getScrollTop } from 'zeppos-cross-api/page'
-import { push } from 'zeppos-cross-api/router'
+import { getScrollTop, scrollTo } from 'zeppos-cross-api/page'
 import {
   getChapter, getChaptersLang,
   getChaptersListRow,
@@ -10,7 +9,7 @@ import {
   useSimpleSurahName
 } from '../lib/config/default'
 import { getVerseMapping } from '../lib/config/juzs'
-import { NUM_JUZS, NUM_PAGES } from '../lib/constants'
+import { NUM_JUZS, NUM_PAGES, PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from '../lib/constants'
 import { _, isRtlLang } from '../lib/i18n/lang'
 import { ListScreen } from '../lib/mmk/ListScreen'
 import {
@@ -21,7 +20,7 @@ import {
   WARNING_COLOR,
   WARNING_COLOR_TXT
 } from '../lib/mmk/UiParams'
-import { PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from './quranPlayer'
+import { openPage } from '../lib/utils'
 
 const playerPage = 'page/player'
 const NUM_ROWS = 144
@@ -66,10 +65,7 @@ export class ChaptersScreen extends ListScreen {
     row.card = {
       callback: () => {
         getApp()._options.globalData.scrollTop = getScrollTop()
-        push({
-          url: playerPage,
-          params: `type=${row.type}&number=${row.number}`
-        })
+        openPage(playerPage, `type=${row.type}&number=${row.number}`)
       }
     }
 
@@ -84,6 +80,7 @@ export class ChaptersScreen extends ListScreen {
         color: 0x123456,
         callback: () => {
           getApp()._options.globalData.pageNumber = pageNumber
+          scrollTo({ y: 0 })
           this.#render()
         }
       },

@@ -3,7 +3,7 @@ import { create, id } from 'zeppos-cross-api/media'
 import { Time } from 'zeppos-cross-api/sensor'
 import { log } from 'zeppos-cross-api/utils'
 import { getRecitation, getVerseInfo, hasVerseInfo } from '../lib/config/default'
-import { IS_EMULATOR, NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE } from '../lib/constants'
+import { IS_EMULATOR, NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE, PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ } from '../lib/constants'
 import { checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery } from '../lib/utils'
 
 const time = new Time()
@@ -19,8 +19,6 @@ export const PREVIOUS = 'previous'
 export const NEXT = 'next'
 export const DECREASE_VOLUME = 'dec-vol'
 export const INCREASE_VOLUME = 'inc-vol'
-export const PLAYER_TYPE_JUZ = 'JUZ'
-export const PLAYER_TYPE_CHAPTER = 'CHAPTER'
 export class QuranPlayer {
   #verses
   #player

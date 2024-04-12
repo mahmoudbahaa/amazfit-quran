@@ -9,17 +9,15 @@
   "author": "Mahmoud Bahaa",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@zeppos/device-types": "^3.0.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.1.1",
-    "zeppos-device-types-v1": "^1.0.9"
+    "eslint-plugin-promise": "^6.1.1"
   },
   "dependencies": {
-    "zeppos-cross-api": "^1.0.8"
+    "zeppos-cross-api": "github:mahmoudbahaa/zeppos-cross-api-polyfill"
   }
 }

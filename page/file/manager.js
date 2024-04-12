@@ -1,7 +1,7 @@
 /* global Page */
 import { resetPageBrightTime, setPageBrightTime } from 'zeppos-cross-api/display'
 import hmUI from 'zeppos-cross-api/ui'
-import { getLastPath, setLastPath } from '../../lib/config/default'
+import { setLastPath } from '../../lib/config/default'
 import { _ } from '../../lib/i18n/lang'
 import { FsTools, Path } from '../../lib/mmk/Path'
 import { SCREEN_HEIGHT, SCREEN_MARGIN_X, SCREEN_MARGIN_Y, WIDGET_WIDTH } from '../../lib/mmk/UiParams'
@@ -17,13 +17,13 @@ class FileManagerScreen {
 
     this.showFileSizes = true //= config.get('fmShowSizes', false)
 
-    let currentPath = FsTools.fullAssetPath('')
-    const lastPath = getLastPath()
-    if (params.path) {
-      currentPath = params.path
-    } else if (lastPath) {
-      currentPath = lastPath
-    }
+    const currentPath = FsTools.fullAssetPath('')
+    // const lastPath = getLastPath()
+    // if (params.path) {
+    //   currentPath = params.path
+    // } else if (lastPath) {
+    //   currentPath = lastPath
+    // }
 
     this.entry = new Path('full', currentPath)
   }

@@ -1,6 +1,9 @@
 /* global App */
 
-import { messageBuilder } from './lib/messageBuilderHolder'
+import { messageBuilderNoInit } from './lib/messageBuilderHolder'
+// import { FsTools } from './lib/mmk/Path'
+
+// FsTools.appTags = [9999999, 'app']
 
 App({
   globalData: {
@@ -15,7 +18,7 @@ App({
   },
   onDestroy () {
     console.log('app on destroy invoke')
-    const mb = messageBuilder()
+    const mb = messageBuilderNoInit()
     if (mb) mb.disConnect()
   }
 })

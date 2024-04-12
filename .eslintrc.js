@@ -20,7 +20,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module'
   },
-  ignorePatterns: ['lib/zeppos/*'],
+  ignorePatterns: [],
   rules: {
   }
 }
