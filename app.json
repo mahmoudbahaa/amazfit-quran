@@ -29,6 +29,7 @@
       "module": {
         "page": {
           "pages": [
+            "page/start",
             "page/home",
             "page/about",
             "page/select",

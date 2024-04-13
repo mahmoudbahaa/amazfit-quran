@@ -1,18 +1,10 @@
 /* global App */
 import { BaseApp } from 'zeppos-cross-api/zml-base-app';
-// Import { FsTools } from './lib/mmk/Path'
-
-// FsTools.appTags = [9999999, 'app']
+import { getGlobalInitialState } from './lib/global';
 
 App(
   BaseApp({
-    globalData: {
-      pageNumber: 0,
-      scrollTop: 0,
-      continue: true,
-      errorCount: 0,
-      restorePlayer: true,
-    },
+    globalData: getGlobalInitialState(),
     onCreate() {
       console.log('app on create invoke');
     },

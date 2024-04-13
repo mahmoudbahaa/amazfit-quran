@@ -17,17 +17,15 @@ export class QuranVersesDownloader {
   #recitation;
   #transferErrorCount;
   #downloadErrorCount;
-  #messageBuilder;
 
-  constructor(service, messageBuilder, params) {
-    this.#init(service, messageBuilder, params);
+  constructor(service, params) {
+    this.#init(service, params);
     this.#stoppingVerseDownload = false;
     this.#stoppedVerseDownload = false;
   }
 
-  #init(service, messageBuilder, params) {
+  #init(service, params) {
     this.#service = service;
-    this.#messageBuilder = messageBuilder;
 
     this.#verses = params.verses;
     this.#audioExists = params.audioExists;
@@ -40,7 +38,7 @@ export class QuranVersesDownloader {
   }
 
   downloadVerses() {
-    this.#messageBuilder.request({ curDownVerse: this.#curDownVerse });
+    this.#service.request({ curDownVerse: this.#curDownVerse });
     setTimeout(async () => this.#getVersesAudioPaths(), MIN_TIMEOUT_DURATION);
   }
 
@@ -136,7 +134,7 @@ export class QuranVersesDownloader {
     }
 
     this.#curDownVerse++;
-    this.#messageBuilder.request({ curDownVerse: this.#curDownVerse });
+    this.#service.request({ curDownVerse: this.#curDownVerse });
     if (this.#curDownVerse >= this.#verses.length) {
       this.#stoppingVerseDownload = true;
       return;
@@ -155,7 +153,7 @@ export class QuranVersesDownloader {
       this.#recitation,
       verseText => {
         const mapping = this.#parseVerse(verseText);
-        this.#messageBuilder.request({ verse, mapping });
+        this.#service.request({ verse, mapping });
         setTimeout(() => that.#downloadVersesAudio(), MIN_TIMEOUT_DURATION);
       },
     );

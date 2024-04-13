@@ -1,10 +1,12 @@
 import { Time } from 'zeppos-cross-api/sensor';
 import { log } from 'zeppos-cross-api/utils';
-import { getRecitation } from '../../lib/config/default';
+import { getRecitation, hasVerseInfo } from '../../lib/config/default';
 import {
   DECREASE_VOLUME, EXIT, INCREASE_VOLUME, NEXT, NUM_CHAPTERS, NUM_JUZS, PAUSE, PLAY, PLAYER_BUFFER_SIZE, PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ, PREVIOUS, START, STOP,
 } from '../../lib/constants';
+import { getGlobal } from '../../lib/global';
 import {
+  checkVerseExists,
   getChapterVerses, getFileName, getJuzVerses, parseQuery,
 } from '../../lib/utils';
 import { Player } from './Player';
@@ -19,25 +21,11 @@ export class QuranPlayer {
   #verses;
   #curPlayVerse;
   #curDownVerse;
-  #relativePath;
-  #recitation;
   #paused;
 
   // Where playerClass is either dummyPlayer or realPlayer
   constructor() {
-    // BasePagc.onCall(param)
-    // const mb = messageBuilder();
-    // mb.on('request', ctx => {
-    //   const request = mb.buf2Json(ctx.request.payload);
-    //   if (request.curDownVerse) {
-    //     this.updateStatus(request.curDownVerse);
-    //   } else if (request.verse) {
-    //     console.log('request received ' + JSON.stringify(request));
-    //     setVerseInfo(request.verse, request.mapping);
-    //   }
-    //   // RequestHandler.onRequest(ctx, request)
-    // });
-
+    getGlobal().basePage.state.player = this;
     this.#reset();
   }
 
@@ -108,10 +96,10 @@ export class QuranPlayer {
       this.#player.release();
     }
 
-    // MessageBuilder().request({
-    //   method: 'download.stop',
-    //   params: '',
-    // });
+    getGlobal().basePage.request({
+      method: 'download.stop',
+      params: '',
+    });
   }
 
   #reset(partialReset = false) {
@@ -120,7 +108,6 @@ export class QuranPlayer {
 
     this.#curPlayVerse = -1;
     this.#curDownVerse = -1;
-    this.#recitation = getRecitation().split(',')[1];
     this.#paused = false;
 
     if (partialReset) {
@@ -129,7 +116,6 @@ export class QuranPlayer {
 
     PlayerInfo.type = undefined;
     PlayerInfo.number = undefined;
-    this.#relativePath = undefined;
   }
 
   #playSurahOrJuz(number, startFrom) {
@@ -161,21 +147,21 @@ export class QuranPlayer {
       this.#player.stop();
     }
 
-    // const audioExists = this.#verses.map(verse => checkVerseExists(verse));
-    // const textExists = this.#verses.map(verse => hasVerseInfo(verse));
-    // const recitation = getRecitation().split(',')[1];
+    const audioExists = this.#verses.map(verse => checkVerseExists(verse));
+    const textExists = this.#verses.map(verse => hasVerseInfo(verse));
+    const recitation = getRecitation().split(',')[1];
 
     this.#curPlayVerse = startFrom === undefined ? -1 : (this.#verses.indexOf(startFrom) - 1);
-    // messageBuilder().request({
-    //   method: 'download.ayas',
-    //   params: {
-    //     verses: this.#verses,
-    //     start: this.#curPlayVerse,
-    //     audioExists,
-    //     textExists,
-    //     recitation,
-    //   },
-    // });
+    getGlobal().basePage.request({
+      method: 'download.ayas',
+      params: {
+        verses: this.#verses,
+        start: this.#curPlayVerse,
+        audioExists,
+        textExists,
+        recitation,
+      },
+    });
   }
 
   #getFileName(verseIndex) {

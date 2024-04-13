@@ -1,4 +1,3 @@
-/* global getApp */
 import { create, id } from 'zeppos-cross-api/media';
 import { Time } from 'zeppos-cross-api/sensor';
 import { log } from 'zeppos-cross-api/utils';
@@ -6,9 +5,11 @@ import { getRecitation, hasVerseInfo } from '../lib/config/default';
 import {
   NUM_CHAPTERS, NUM_JUZS, PLAYER_BUFFER_SIZE, PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ,
 } from '../lib/constants';
+import { getGlobal } from '../lib/global';
 import {
   checkVerseExists, getChapterVerses, getFileName, getJuzVerses, parseQuery,
 } from '../lib/utils';
+import { PlayerInfo } from './player/playerInfoHolder';
 
 const time = new Time();
 const VOLUME_INCREMENT = 10;
@@ -49,7 +50,7 @@ export class QuranPlayer {
     switch (result.action) {
       case START:
         this.#reset();
-        getApp()._options.globalData.playerInfo.type = result.type;
+        PlayerInfo.type = result.type;
         this.#playSurahOrJuz(parseInt(result.number, 10), result.verse);
         break;
       case EXIT:
@@ -73,10 +74,10 @@ export class QuranPlayer {
         this.#player.stop();
         break;
       case PREVIOUS:
-        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number - 1);
+        this.#playSurahOrJuz(PlayerInfo.number - 1);
         break;
       case NEXT:
-        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number + 1);
+        this.#playSurahOrJuz(PlayerInfo.number + 1);
         break;
       case DECREASE_VOLUME:
         this.#player.setVolume(this.#player.getVolume() - VOLUME_INCREMENT);
@@ -90,7 +91,7 @@ export class QuranPlayer {
 
   updateStatus(curDownVerse) {
     this.#curDownVerse = curDownVerse;
-    getApp()._options.globalData.playerInfo.curDownloadedVerse = this.#verses[curDownVerse];
+    PlayerInfo.curDownloadedVerse = this.#verses[curDownVerse];
     if (curDownVerse - this.#curPlayVerse > PLAYER_BUFFER_SIZE || curDownVerse === this.#verses.length) {
       this.#playVerse();
     }
@@ -103,8 +104,8 @@ export class QuranPlayer {
       this.#player.release();
     }
 
-    if (getApp()._options.globalData.basePage) {
-      getApp()._options.globalData.basePage.request({
+    if (getGlobal().basePage) {
+      getGlobal().basePage.request({
         method: 'download.stop',
         params: '',
       });
@@ -112,8 +113,8 @@ export class QuranPlayer {
   }
 
   #reset(partialReset = false) {
-    getApp()._options.globalData.playerInfo.curVerse = undefined;
-    getApp()._options.globalData.playerInfo.curDownloadedVerse = undefined;
+    PlayerInfo.curVerse = undefined;
+    PlayerInfo.curDownloadedVerse = undefined;
 
     this.#curPlayVerse = -1;
     this.#curDownVerse = -1;
@@ -124,13 +125,13 @@ export class QuranPlayer {
       return;
     }
 
-    getApp()._options.globalData.playerInfo.type = undefined;
-    getApp()._options.globalData.playerInfo.number = undefined;
+    PlayerInfo.type = undefined;
+    PlayerInfo.number = undefined;
     this.#relativePath = undefined;
   }
 
   #playSurahOrJuz(number, startFrom) {
-    switch (getApp()._options.globalData.playerInfo.type) {
+    switch (PlayerInfo.type) {
       case PLAYER_TYPE_JUZ: {
         if (number > NUM_JUZS || number < 1) {
           return;
@@ -153,7 +154,7 @@ export class QuranPlayer {
     }
 
     this.#reset(true);
-    getApp()._options.globalData.playerInfo.number = number;
+    PlayerInfo.number = number;
     if (this.#player !== undefined) {
       this.#player.stop();
     }
@@ -163,7 +164,7 @@ export class QuranPlayer {
     const recitation = getRecitation().split(',')[1];
 
     this.#curPlayVerse = startFrom === undefined ? -1 : (this.#verses.indexOf(startFrom) - 1);
-    getApp()._options.globalData.basePage.request({
+    getGlobal().basePage.request({
       method: 'download.ayas',
       params: {
         verses: this.#verses,
@@ -194,8 +195,8 @@ export class QuranPlayer {
     this.#curPlayVerse++;
 
     if (this.#curPlayVerse >= this.#verses.length) {
-      if (getApp()._options.globalData.continue) {
-        this.#playSurahOrJuz(getApp()._options.globalData.playerInfo.number + 1);
+      if (PlayerInfo.continue) {
+        this.#playSurahOrJuz(PlayerInfo.number + 1);
       } else {
         this.#doExit();
       }
@@ -214,8 +215,8 @@ export class QuranPlayer {
       player = this.#player;
       player.addEventListener(player.event.PREPARE, result => {
         if (result) {
-          getApp()._options.globalData.playerInfo.verseStartTime = time.getTime();
-          getApp()._options.globalData.playerInfo.curVerse = this.#verses[this.#curPlayVerse];
+          PlayerInfo.verseStartTime = time.getTime();
+          PlayerInfo.curVerse = this.#verses[this.#curPlayVerse];
           player.start();
         } else {
           logger.log('=== prepare fail ===');

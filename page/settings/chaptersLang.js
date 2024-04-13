@@ -3,23 +3,20 @@ import { showToast } from 'zeppos-cross-api/ui';
 import { createLoadingWidget, deleteLoadingWidget } from '../../components/loadingWidget';
 import { SettingsLangScreen } from '../../components/settingsLangScreen';
 import { getChaptersLang, setChaptersLang } from '../../lib/config/default';
-import { messageBuilder } from '../../lib/messageBuilderHolder';
+import { getGlobal } from '../../lib/global';
 Page({
   onInit() {
     createLoadingWidget();
 
     console.log('Getting languages');
-    messageBuilder()
+    const { basePage } = getGlobal();
+    basePage
       .request({
         method: 'get.chapters.langs',
         params: '',
       })
-      .then(data => {
-        if (data.languages) {
-          this.onLangsReceived(data.languages);
-        } else {
-          this.onErrorReceived();
-        }
+      .then(result => {
+        this.onLangsReceived(result.languages);
       })
       .catch(() => {
         this.onErrorReceived();

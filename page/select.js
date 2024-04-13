@@ -5,15 +5,17 @@ import { log } from 'zeppos-cross-api/utils';
 import { ChaptersScreen } from '../components/chaptersList';
 import { createLoadingWidget, deleteLoadingWidget, updateStatus } from '../components/loadingWidget';
 import {
-  getChaptersLang, getSavedChaptersLang, removeChaptersListRows, setChapters, setSavedChaptersLang,
+  getChaptersLang, getSavedChaptersLang, removeChaptersListRows,
+  setChapters,
+  setSavedChaptersLang,
 } from '../lib/config/default';
 import { setEnChapters } from '../lib/config/enChapters';
 import { MIN_TIMEOUT_DURATION } from '../lib/constants';
+import { getGlobal } from '../lib/global';
 import { DEVICE_LANG, _ } from '../lib/i18n/lang';
-import { messageBuilder } from '../lib/messageBuilderHolder';
+import { restorePlayer } from '../lib/utils';
 
 const logger = log.getLogger('select.page');
-
 class SelectScreen {
   getChapters() {
     const savedChaptersLang = getSavedChaptersLang();
@@ -38,23 +40,22 @@ class SelectScreen {
         this.createWidgets();
       }, MIN_TIMEOUT_DURATION);
     } else {
-      messageBuilder().request({
-        method: 'get.chapters',
-        params: { lang: chaptersLang },
-      }).then(data => {
-        if (data.status === 'error') {
-          this.onError();
-          return;
-        }
-
-        removeChaptersListRows();
-        setSavedChaptersLang(chaptersLang);
-        setChapters(data.chapters);
-        deleteLoadingWidget();
-        this.createWidgets();
-      }).catch(error => {
-        this.onError(error);
-      });
+      const { basePage } = getGlobal();
+      basePage
+        .request({
+          method: 'get.chapters',
+          params: { lang: chaptersLang },
+        })
+        .then(data => {
+          removeChaptersListRows();
+          setSavedChaptersLang(chaptersLang);
+          setChapters(data.chapters);
+          deleteLoadingWidget();
+          this.createWidgets();
+        })
+        .catch(error => {
+          this.onError(error);
+        });
     }
   }
 
@@ -74,10 +75,12 @@ class SelectScreen {
       relaunch: true,
     });
 
-    // If (getApp()._options.globalData.restorePlayer) {
-    //   getApp()._options.globalData.restorePlayer = false
-    //   if (restorePlayer()) return
-    // }
+    if (getGlobal().restorePlayer) {
+      getGlobal().restorePlayer = false;
+      if (restorePlayer()) {
+        return;
+      }
+    }
 
     createLoadingWidget();
     setTimeout(() => this.getChapters(), MIN_TIMEOUT_DURATION);

@@ -1,9 +1,6 @@
 /* global Logger AppSideService */
-import { MessageBuilder } from 'zeppos-cross-api/message-side';
 import { BaseSideService } from 'zeppos-cross-api/zml-base-side';
 import { Handler } from './handler';
-
-const messageBuilder = new MessageBuilder();
 
 // @ts-ignore
 const logger = Logger.getLogger('message-app-side');
@@ -11,17 +8,14 @@ const logger = Logger.getLogger('message-app-side');
 AppSideService(
   BaseSideService({
     state: {
-      downloader: undefined,
+      handler: undefined,
     },
     onInit() {
       logger.log('app side service invoke onInit');
-      const handler = new Handler(this, messageBuilder);
-      messageBuilder.listen(() => { });
-
-      messageBuilder.on('request', ctx => {
-        const req = messageBuilder.buf2Json(ctx.request.payload);
-        handler.onRequest(req, ctx);
-      });
+      this.state.handler = new Handler(this);
+    },
+    onRequest(req, res) {
+      this.state.handler.onRequest(req, res);
     },
     onRun() {
       logger.log('app side service invoke onRun');

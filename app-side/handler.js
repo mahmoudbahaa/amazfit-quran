@@ -12,23 +12,21 @@ export class Handler {
    * @type {number}
    */
   #remainingLangsNum;
-  #messageBuilder;
 
-  constructor(service, messageBuilder) {
+  constructor(service) {
     this.#service = service;
-    this.#messageBuilder = messageBuilder;
   }
 
-  async onRequest(req, ctx) {
+  async onRequest(req, res) {
     switch (req.method) {
       case 'download.ayas': {
         if (this.#downloader) {
           this.#downloader.stop();
         }
 
-        this.#downloader = new QuranVersesDownloader(this.#service, this.#messageBuilder, req.params);
+        this.#downloader = new QuranVersesDownloader(this.#service, req.params);
         this.#downloader.downloadVerses();
-        ctx.response({ data: { result: 'SUCCESS' } });
+        res(null);
         break;
       }
 
@@ -38,17 +36,17 @@ export class Handler {
         }
 
         this.#downloader = undefined;
-        ctx.response({ data: { result: 'SUCCESS' } });
+        res(null);
         break;
       }
 
       case 'get.chapters.langs': {
-        await this.#getChaptersLangs(ctx);
+        await this.#getChaptersLangs(res);
         break;
       }
 
       case 'get.chapters': {
-        await this.#getChapters(req, ctx);
+        await this.#getChapters(req, res);
         break;
       }
 
@@ -68,21 +66,21 @@ export class Handler {
     return fetch({ url, method: 'GET' });
   }
 
-  async #getChaptersLangs(ctx) {
+  async #getChaptersLangs(res) {
     const response = await this.#get(baseUrl + 'resources/languages');
 
     if (!response.ok) {
-      ctx.response({ data: { status: 'error' } });
+      res('error');
       return;
     }
 
     const languages = {};
     const body = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
     this.#remainingLangsNum = body.languages.length;
-    body.languages.forEach(lang => this.#checkLanguage(lang, languages, ctx));
+    body.languages.forEach(lang => this.#checkLanguage(lang, languages, res));
   }
 
-  async #checkLanguage(lang, languages, ctx) {
+  async #checkLanguage(lang, languages, res) {
     const response = await this.#get(baseUrl + 'chapters/1?language=' + lang.iso_code);
     this.#remainingLangsNum--;
     if (response.ok) {
@@ -95,22 +93,22 @@ export class Handler {
 
     if (this.#remainingLangsNum === 0) {
       languages.ar = 'عربي';
-      ctx.response({ data: { status: 'success', languages } });
+      res(null, { languages });
     }
   }
 
-  async #getChapters(req, ctx) {
+  async #getChapters(req, res) {
     const response = await this.#get(`${baseUrl}chapters?language=${req.params.lang}`);
 
     if (!response.ok) {
       console.log(`Error=${response.status},${response.statusText}`);
-      ctx.response({ data: { status: 'error' } });
+      res('error');
       return;
     }
 
     const body = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;
     if (body.chapters === undefined) {
-      ctx.response({ data: { status: 'error' } });
+      res('error');
     }
 
     const chapters = body.chapters.map(chapter => ({
@@ -120,6 +118,6 @@ export class Handler {
       translatedName: chapter.translated_name.name,
     }));
 
-    ctx.response({ data: { status: 'success', chapters } });
+    res(null, { chapters });
   }
 }

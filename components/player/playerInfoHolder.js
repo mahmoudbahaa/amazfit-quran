@@ -4,6 +4,7 @@ const playerInfo = {
   curVerse: undefined,
   curDownloadedVerse: undefined,
   verseStartTime: undefined,
+  continue: undefined,
 };
 
 export class PlayerInfo {

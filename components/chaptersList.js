@@ -1,4 +1,3 @@
-/* global getApp */
 import { getScrollTop, scrollTo } from 'zeppos-cross-api/page';
 import {
   getChapter, getChaptersLang,
@@ -12,6 +11,7 @@ import { getVerseMapping } from '../lib/config/juzs';
 import {
   NUM_JUZS, NUM_PAGES, PLAYER_TYPE_CHAPTER, PLAYER_TYPE_JUZ,
 } from '../lib/constants';
+import { getGlobal } from '../lib/global';
 import { _, isRtlLang } from '../lib/i18n/lang';
 import { ListScreen } from '../lib/mmk/ListScreen';
 import {
@@ -42,7 +42,7 @@ export class ChaptersScreen extends ListScreen {
   }
 
   #render() {
-    this.#pageNumber = getApp()._options.globalData.pageNumber;
+    this.#pageNumber = getGlobal().pageNumber;
     this.#start = this.#pageNumber * NUM_PER_PAGE;
     this.#end = this.#start + pageLength(this.#pageNumber);
     let pos = 0;
@@ -59,14 +59,14 @@ export class ChaptersScreen extends ListScreen {
     }
 
     this.replaceOrCreateRow({ }, pos++);
-    this.finalize(pos, getApp()._options.globalData.scrollTop);
+    this.finalize(pos, getGlobal().scrollTop);
   }
 
   #getRow(rowNumber) {
     const row = getRow(rowNumber);
     row.card = {
       callback() {
-        getApp()._options.globalData.scrollTop = getScrollTop();
+        getGlobal().scrollTop = getScrollTop();
         openPage(playerPage, `type=${row.type}&number=${row.number}`);
       },
     };
@@ -81,7 +81,7 @@ export class ChaptersScreen extends ListScreen {
       card: {
         color: 0x123456,
         callback: () => {
-          getApp()._options.globalData.pageNumber = pageNumber;
+          getGlobal().pageNumber = pageNumber;
           scrollTo({ y: 0 });
           this.#render();
         },

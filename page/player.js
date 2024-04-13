@@ -49,9 +49,9 @@ Page({
   },
   onPause() {
     logger.log('page on pause invoke');
-    // If (getApp()._options.globalData.player) {
-    //   getApp()._options.globalData.player.doAction(this.getServiceParam(EXIT))
-    //   getApp()._options.globalData.player = undefined
+    // If (getGlobal().player) {
+    //   getGlobal().player.doAction(this.getServiceParam(EXIT))
+    //   getGlobal().player = undefined
     // }
   },
   onResume() {
