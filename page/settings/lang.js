@@ -1,13 +1,13 @@
 /* global Page */
-import { SettingsLangScreen } from '../../components/settingsLangScreen'
+import { SettingsLangScreen } from '../../components/settingsLangScreen';
 
 Page({
   state: {
-    screen: undefined
+    screen: undefined,
   },
 
-  onInit () {
-    this.state.screen = new SettingsLangScreen()
-    this.state.screen.start()
-  }
-})
+  onInit() {
+    this.state.screen = new SettingsLangScreen();
+    this.state.screen.start();
+  },
+});

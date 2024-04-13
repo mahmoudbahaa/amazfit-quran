@@ -1,26 +1,32 @@
 module.exports = {
   env: {
-    es2021: true
+    es2021: true,
+    node: true,
   },
-  extends: 'standard',
+  extends: 'xo',
   overrides: [
     {
       env: {
-        node: true
+        node: true,
       },
       files: [
-        '.eslintrc.{js,cjs}'
+        '.eslintrc.{js,cjs}',
       ],
       parserOptions: {
-        sourceType: 'script'
-      }
-    }
+        sourceType: 'script',
+      },
+    },
   ],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
   },
-  ignorePatterns: [],
   rules: {
-  }
-}
+    'object-curly-spacing': ['error', 'always'],
+    indent: ['error', 2, { ImportDeclaration: 'off', SwitchCase: 1 }],
+    'new-cap': ['error', { capIsNew: false }],
+    camelcase: ['error', { ignoreImports: true, properties: 'never' }],
+    'capitalized-comments': 'off',
+    'max-params': ['error', 6],
+  },
+};
