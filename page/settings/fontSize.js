@@ -1,5 +1,5 @@
 /* global Page */
-import hmUI from 'zeppos-cross-api/ui'
+import { setStatusBarVisible } from 'zeppos-cross-api/ui'
 import { getFontSize, setFontSize } from '../../lib/config/default'
 import { FontSizeSetupScreen } from '../../lib/mmk/FontSizeSetupScreen'
 
@@ -20,9 +20,7 @@ class ConfiguredFontSizeSetupScreen extends FontSizeSetupScreen {
 
 Page({
   onInit () {
-    hmUI.setStatusBarVisible(true)
-    hmUI.updateStatusBarTitle('')
-
+    setStatusBarVisible(false)
     new ConfiguredFontSizeSetupScreen().start()
   }
 })
